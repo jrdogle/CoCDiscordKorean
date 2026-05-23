@@ -14,16 +14,13 @@ pub struct ChooseCommand;
 impl BotCommand for ChooseCommand {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Makes a random choice.")
-            .description_localized("ja", "与えられたものからランダムに選択をします.")
+            .description("주어진 항목 중 하나를 무작위로 선택합니다.")
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
                     "choices",
-                    "Comma-separated choices (ex. A,B,C)",
+                    "쉼표로 구분된 선택지 (예: 사과,바나나,포도)",
                 )
-                .name_localized("ja", "選択肢")
-                .description_localized("ja", "カンマ区切りで与えてください (例: A,B,C)")
                 .required(true),
             )
     }
@@ -47,10 +44,10 @@ impl BotCommand for ChooseCommand {
             .send_embed(
                 ctx,
                 CreateEmbed::new()
-                    .title(format!("{}'s choice", author))
+                    .title(format!("{}의 선택", author))
                     .field(
                         format!("**{}**", choices[selected]),
-                        format!("From {}", choices.join(",")),
+                        format!("선택지: {}", choices.join(", ")),
                         false,
                     ),
             )

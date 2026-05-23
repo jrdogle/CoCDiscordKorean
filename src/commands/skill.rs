@@ -28,32 +28,32 @@ impl SkillCommand {
 
         let comment = interaction
             .get_string_option("comment".to_string())
-            .unwrap_or("a skill");
+            .unwrap_or("기능");
 
         let (result, roll) = match rand::thread_rng().gen_range(1..=100) {
             result if (result == 1 && result <= chance) => (
-                ":star::crown::star: **Critical!!!**",
+                ":star::crown::star: **대성공!!!**",
                 format!("1 <= {}", chance),
             ),
             result if result <= 5 && (result <= chance) => {
-                (":crown: **Critical!**", format!("{} <= {}", result, chance))
+                (":crown: **대성공!**", format!("{} <= {}", result, chance))
             }
             result if result == 100 && (result > chance) => (
-                ":fire::skull::fire: **Fumble!!!**",
+                ":fire::skull::fire: **펌블!!!**",
                 format!("100 > {}", chance),
             ),
             result if result > 95 && (result > chance) => {
-                (":skull: **Fumble!**", format!("{} > {}", result, chance))
+                (":skull: **펌블!**", format!("{} > {}", result, chance))
             }
-            result if result <= chance => (":o: **Success**", format!("{} <= {}", result, chance)),
-            result => (":x: **Failed**", format!("{} > {}", result, chance)),
+            result if result <= chance => (":o: **보통 성공**", format!("{} <= {}", result, chance)),
+            result => (":x: **실패**", format!("{} > {}", result, chance)),
         };
 
         interaction
             .send_embed(
                 ctx,
                 CreateEmbed::new()
-                    .title(format!("{} uses {}", interaction.get_nickname(), comment))
+                    .title(format!("{}의 {} 판정", interaction.get_nickname(), comment))
                     .field(result, roll, false),
             )
             .await?;
@@ -67,33 +67,33 @@ impl SkillCommand {
 
         let comment = interaction
             .get_string_option("comment".to_string())
-            .unwrap_or("a skill");
+            .unwrap_or("기능");
 
         let (result, roll) = match rand::thread_rng().gen_range(1..=100) {
             result if (result == 1 && result <= chance) => (
-                ":star::crown::star: **Critical!!!**",
+                ":star::crown::star: **대성공!!!**",
                 format!("1 <= {}", chance),
             ),
             result if result <= chance / 5 => (
-                ":crown: **Extreme Success!**",
+                ":crown: **극단적 성공!**",
                 format!("{} <= {} / 5", result, chance),
             ),
             result if result <= chance / 2 => (
-                ":o: **Hard Success!**",
+                ":o: **어려운 성공!**",
                 format!("{} <= {} / 2", result, chance),
             ),
             result if result == 100 || (result > 95 && chance < 50) => {
-                (":skull: **Fumble!**", format!("{} >= {}", result, chance))
+                (":skull: **펌블!**", format!("{} >= {}", result, chance))
             }
-            result if result <= chance => (":o: **Success**", format!("{} <= {}", result, chance)),
-            result => (":x: **Failed**", format!("{} > {}", result, chance)),
+            result if result <= chance => (":o: **보통 성공**", format!("{} <= {}", result, chance)),
+            result => (":x: **실패**", format!("{} > {}", result, chance)),
         };
 
         interaction
             .send_embed(
                 ctx,
                 CreateEmbed::new()
-                    .title(format!("{} uses {}", interaction.get_nickname(), comment))
+                    .title(format!("{}의 {} 판정", interaction.get_nickname(), comment))
                     .field(result, roll, false),
             )
             .await?;
@@ -106,35 +106,35 @@ impl SkillCommand {
 
         let comment = interaction
             .get_string_option("comment".to_string())
-            .unwrap_or("a skill");
+            .unwrap_or("기능");
 
         let (result, roll) = match rand::thread_rng().gen_range(1..=100) {
             result if (result == 1 && result <= chance) => (
-                ":star::crown::star: **Critical!!!**",
+                ":star::crown::star: **대성공!!!**",
                 format!("1 <= {}", chance),
             ),
             result if result <= 5 && (result <= chance) => {
-                (":crown: **Critical!**", format!("{} <= {}", result, chance))
+                (":crown: **대성공!**", format!("{} <= {}", result, chance))
             }
             result if result / 10 == result % 10 && result <= chance => {
-                (":crown: **Critical!**", format!("{} <= {}", result, chance))
+                (":crown: **대성공!**", format!("{} <= {}", result, chance))
             }
             result if result == 100 && (result > chance) => (
-                ":fire::skull::fire: **Fumble!!!**",
+                ":fire::skull::fire: **펌블!!!**",
                 format!("100 > {}", chance),
             ),
             result if result > 95 && (result > chance) => {
-                (":skull: **Fumble!**", format!("{} > {}", result, chance))
+                (":skull: **펌블!**", format!("{} > {}", result, chance))
             }
-            result if result <= chance => (":o: **Success**", format!("{} <= {}", result, chance)),
-            result => (":x: **Failed**", format!("{} > {}", result, chance)),
+            result if result <= chance => (":o: **보통 성공**", format!("{} <= {}", result, chance)),
+            result => (":x: **실패**", format!("{} > {}", result, chance)),
         };
 
         interaction
             .send_embed(
                 ctx,
                 CreateEmbed::new()
-                    .title(format!("{} uses {}", interaction.get_nickname(), comment))
+                    .title(format!("{}의 {} 판정", interaction.get_nickname(), comment))
                     .field(result, roll, false),
             )
             .await?;
@@ -147,28 +147,28 @@ impl SkillCommand {
 
         let comment = interaction
             .get_string_option("comment".to_string())
-            .unwrap_or("a skill");
+            .unwrap_or("기능");
 
         let (result, roll) = match rand::thread_rng().gen_range(1..=100) {
             result if result <= (chance - 1) / 20 + 1 => (
-                ":star::crown::star: **Critical!!!**",
+                ":star::crown::star: **대성공!!!**",
                 format!("{} <= {}", result, chance),
             ),
             result if result <= (chance - 1) / 5 + 1 => {
-                (":crown: **Special!**", format!("{} <= {}", result, chance))
+                (":crown: **특수 성공!**", format!("{} <= {}", result, chance))
             }
             result if result >= i32::min(96 + (chance - 1) / 20, 100) && (result > chance) => {
-                (":skull: **Fumble!**", format!("{} > {}", result, chance))
+                (":skull: **펌블!**", format!("{} > {}", result, chance))
             }
-            result if result <= chance => (":o: **Success**", format!("{} <= {}", result, chance)),
-            result => (":x: **Failed**", format!("{} > {}", result, chance)),
+            result if result <= chance => (":o: **보통 성공**", format!("{} <= {}", result, chance)),
+            result => (":x: **실패**", format!("{} > {}", result, chance)),
         };
 
         interaction
             .send_embed(
                 ctx,
                 CreateEmbed::new()
-                    .title(format!("{} uses {}", interaction.get_nickname(), comment))
+                    .title(format!("{}의 {} 판정", interaction.get_nickname(), comment))
                     .field(result, roll, false),
             )
             .await?;
@@ -182,19 +182,13 @@ impl SkillCommand {
 impl BotCommand for SkillCommand {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Does a skill roll. This is an alias for `/sk6` (The CoC 6th Edition).")
-            .description_localized(
-                "ja",
-                "第6版のルールに基づいて技能ロールを行います. `/sk6`と全く同じです.",
-            )
+            .description("기능 판정을 합니다. `/sk6` (크툴루의 부름 6판)과 동일합니다.")
             .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "chance", "A skill chance")
-                    .description_localized("ja", "技能値")
+                CreateCommandOption::new(CommandOptionType::Integer, "chance", "기능 수치")
                     .required(true),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "comment", "A comment")
-                    .description_localized("ja", "ダイスの説明"),
+                CreateCommandOption::new(CommandOptionType::String, "comment", "판정 설명"),
             )
     }
 
@@ -212,16 +206,13 @@ impl BotCommand for SkillCommand {
 impl BotCommand for Sk6Command {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Does a skill roll following the Call of Cthulhu 6th Edition.")
-            .description_localized("ja", "第6版のルールに基づいて技能ロールを行います.")
+            .description("크툴루의 부름 6판 룰에 따라 기능 판정을 합니다.")
             .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "chance", "A skill chance")
-                    .description_localized("ja", "技能値")
+                CreateCommandOption::new(CommandOptionType::Integer, "chance", "기능 수치")
                     .required(true),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "comment", "A comment")
-                    .description_localized("ja", "ダイスの説明"),
+                CreateCommandOption::new(CommandOptionType::String, "comment", "판정 설명"),
             )
     }
 
@@ -239,16 +230,13 @@ impl BotCommand for Sk6Command {
 impl BotCommand for Sk7Command {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Does a skill roll following the Call of Cthulhu 7th Edition.")
-            .description_localized("ja", "第7版のルールに基づいて技能ロールを行います.")
+            .description("크툴루의 부름 7판 룰에 따라 기능 판정을 합니다.")
             .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "chance", "A skill chance")
-                    .description_localized("ja", "技能値")
+                CreateCommandOption::new(CommandOptionType::Integer, "chance", "기능 수치")
                     .required(true),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "comment", "A comment")
-                    .description_localized("ja", "ダイスの説明"),
+                CreateCommandOption::new(CommandOptionType::String, "comment", "판정 설명"),
             )
     }
 
@@ -266,16 +254,13 @@ impl BotCommand for Sk7Command {
 impl BotCommand for SkDGCommand {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Does a skill roll following the Delta Green.")
-            .description_localized("ja", "Delta Greenのルールに基づいて技能ロールを行います.")
+            .description("델타 그린 룰에 따라 기능 판정을 합니다.")
             .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "chance", "A skill chance")
-                    .description_localized("ja", "技能値")
+                CreateCommandOption::new(CommandOptionType::Integer, "chance", "기능 수치")
                     .required(true),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "comment", "A comment")
-                    .description_localized("ja", "ダイスの説明"),
+                CreateCommandOption::new(CommandOptionType::String, "comment", "판정 설명"),
             )
     }
 
@@ -293,16 +278,13 @@ impl BotCommand for SkDGCommand {
 impl BotCommand for SkBRPCommand {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Does a skill roll following the BRP 2023.")
-            .description_localized("ja", "BRP 2023のルールに基づいて技能ロールを行います.")
+            .description("BRP 2023 룰에 따라 기능 판정을 합니다.")
             .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "chance", "A skill chance")
-                    .description_localized("ja", "技能値")
+                CreateCommandOption::new(CommandOptionType::Integer, "chance", "기능 수치")
                     .required(true),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "comment", "A comment")
-                    .description_localized("ja", "ダイスの説明"),
+                CreateCommandOption::new(CommandOptionType::String, "comment", "판정 설명"),
             )
     }
 

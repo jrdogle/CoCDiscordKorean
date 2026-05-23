@@ -20,26 +20,21 @@ pub struct RollCommand;
 impl BotCommand for RollCommand {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Rolls designated dices.")
-            .description_localized("ja", "指定されたダイスを振ります.")
+            .description("지정된 주사위를 굴립니다.")
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
                     "dice",
-                    "An expression to be evaluated (ex. `3d4 + 1`)",
+                    "굴릴 주사위 식 (예: 3d4 + 1)",
                 )
-                .name_localized("ja", "ダイス")
-                .description_localized("ja", "振りたいダイス (例: `3d4 + 1`)")
                 .required(true),
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
                     "comment",
-                    "A comment for the roll",
+                    "주사위 굴림에 대한 설명",
                 )
-                .name_localized("ja", "コメント")
-                .description_localized("ja", "ダイスの説明"),
             )
     }
 
@@ -52,7 +47,7 @@ impl BotCommand for RollCommand {
 
         let comment = interaction
             .get_string_option("comment".into())
-            .map(|comment| format!(" for {}", comment))
+            .map(|comment| format!(": {}", comment))
             .unwrap_or_default();
 
         match RollCommand::evaluate_dice_expr(dice) {
@@ -62,7 +57,7 @@ impl BotCommand for RollCommand {
                         ctx,
                         CreateEmbed::new()
                             .title(format!(
-                                "{} rolls dice(s){}",
+                                "{}의 주사위 굴림{}",
                                 interaction.get_nickname(),
                                 comment
                             ))

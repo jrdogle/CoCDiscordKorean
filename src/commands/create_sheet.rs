@@ -20,11 +20,11 @@ struct Status<'l> {
 /// A list of the statuses required.
 const STATUSES: [Status; 8] = [
     Status {
-        name: ":dagger: STR",
+        name: ":dagger: 근력",
         roll: "3d6",
     },
     Status {
-        name: ":umbrella: CON",
+        name: ":umbrella: 건강",
         roll: "3d6",
     },
     Status {
@@ -58,8 +58,7 @@ const STATUSES: [Status; 8] = [
 impl BotCommand for CSCommand {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Creates a character sheet.")
-            .description_localized("ja", "キャラクターシートを作成します.")
+            .description("탐사자 시트를 생성합니다.")
     }
 
     async fn execute(
@@ -71,7 +70,7 @@ impl BotCommand for CSCommand {
 
         let mut roller = FastRand::default();
 
-        let embed = CreateEmbed::new().title(format!("{}'s character", author));
+        let embed = CreateEmbed::new().title(format!("{}의 탐사자", author));
         let embed = STATUSES.iter().fold(embed, |embed, status| {
             let expr: Expr = status.roll.parse().unwrap();
             let result = expr.eval(&mut roller).unwrap();

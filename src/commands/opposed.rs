@@ -19,46 +19,35 @@ pub struct Op7Command;
 impl BotCommand for Op6Command {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Does an opposed roll following the Call of Cthulhu 6th Edition.")
-            .description_localized("ja", "第6版のルールに基づいて対抗ロールをします.")
+            .description("크툴루의 부름 6판 룰에 따라 대항 판정을 합니다.")
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
                     "status1",
-                    "A status of player1 (ex. STR for a strength opposed roll.)",
+                    "참가자 1의 특성치 (예: 근력 대항일 경우 근력 값)",
                 )
-                .name_localized("ja", "参加者1")
-                .description_localized("ja", "参加者1のステータス (例: STR対抗ならSTR.)")
                 .required(true),
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
                     "status2",
-                    "A status of player2 (ex. DEX for a dexterity opposed roll.)",
+                    "참가자 2의 특성치 (예: 민첩 대항일 경우 민첩 값)",
                 )
-                .name_localized("ja", "参加者2")
-                .description_localized("ja", "参加者2のステータス (例: DEX対抗ならDEX.)")
                 .required(true),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "name1", "A name of player1")
-                    .name_localized("ja", "名前1")
-                    .description_localized("ja", "参加者1の名前"),
+                CreateCommandOption::new(CommandOptionType::String, "name1", "참가자 1의 이름")
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "name2", "A name of player2")
-                    .name_localized("ja", "名前2")
-                    .description_localized("ja", "参加者2の名前"),
+                CreateCommandOption::new(CommandOptionType::String, "name2", "참가자 2의 이름")
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
                     "comment",
-                    "A comment for the roll",
+                    "판정 설명",
                 )
-                .name_localized("ja", "コメント")
-                .description_localized("ja", "ダイスの説明"),
             )
     }
 
@@ -71,19 +60,19 @@ impl BotCommand for Op6Command {
         let status2 = interaction.get_int_option("status2".into()).unwrap();
 
         if status1 < 0 || status1 > 20 || status2 < 0 || status2 > 20 {
-            return Ok(CommandStatus::Err("A status must be 0-20.".to_string()));
+            return Ok(CommandStatus::Err("특성치는 0에서 20 사이여야 합니다.".to_string()));
         }
 
         let name1 = interaction
             .get_string_option("name1".into())
-            .unwrap_or("player1");
+            .unwrap_or("참가자 1");
         let name2 = interaction
             .get_string_option("name2".into())
-            .unwrap_or("player2");
+            .unwrap_or("참가자 2");
 
         let comment = interaction
             .get_string_option("comment".into())
-            .unwrap_or("A competition");
+            .unwrap_or("대항 판정");
 
         let chance = 50 + (status1 - status2) * 5;
         let chance = chance.clamp(0, 100);
@@ -165,10 +154,10 @@ impl PartialOrd for RollResult {
 impl ToString for RollResult {
     fn to_string(&self) -> String {
         match self {
-            RollResult::ExtremeSuccess(_) => "Extreme Success".into(),
-            RollResult::HardSuccess(_) => "Hard Success".into(),
-            RollResult::Success(_) => "Success".into(),
-            RollResult::Failure(_) => "Failure".into(),
+            RollResult::ExtremeSuccess(_) => "극단적 성공".into(),
+            RollResult::HardSuccess(_) => "어려운 성공".into(),
+            RollResult::Success(_) => "보통 성공".into(),
+            RollResult::Failure(_) => "실패".into(),
         }
     }
 }
@@ -178,72 +167,57 @@ impl ToString for RollResult {
 impl BotCommand for Op7Command {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("Does an opposed roll following the Call of Cthulhu 7th Edition.")
-            .description_localized("ja", "第7版のルールに基づいて対抗ロールをします.")
+            .description("크툴루의 부름 7판 룰에 따라 대항 판정을 합니다.")
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
                     "status1",
-                    "A status of player1 (ex. STR for a strength opposed roll.)",
+                    "참가자 1의 특성치 (예: 근력 대항일 경우 근력 값)",
                 )
-                .name_localized("ja", "参加者1")
-                .description_localized("ja", "参加者1のステータス (例: STR対抗ならSTR.)")
                 .required(true),
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
                     "status2",
-                    "A status of player2 (ex. DEX for a dexterity opposed roll.)",
+                    "참가자 2의 특성치 (예: 민첩 대항일 경우 민첩 값)",
                 )
-                .name_localized("ja", "参加者2")
-                .description_localized("ja", "参加者2のステータス (例: DEX対抗ならDEX.)")
                 .required(true),
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
                     "bonus1",
-                    "A bonus or penalty dice for player1. (ex. +1 for bonus, -1 for penalty)",
+                    "참가자 1의 보너스/패널티 주사위 (예: +1은 보너스, -1은 패널티)",
                 )
-                .name_localized("ja", "ボーナス1")
-                .description_localized("ja", "参加者1へのボーナスダイスまたはペナルティダイス (例: +1ならボーナス, -1ならペナルティ)")
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
                     "bonus2",
-                    "A bonus or penalty dice for player2. (ex. +1 for bonus, -1 for penalty)",
+                    "참가자 2의 보너스/패널티 주사위 (예: +1은 보너스, -1은 패널티)",
                 )
-                .name_localized("ja", "ボーナス2")
-                .description_localized("ja", "参加者2へのボーナスダイスまたはペナルティダイス (例: +1ならボーナス, -1ならペナルティ)")
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
                     "name1",
-                    "A name of player1",
+                    "참가자 1의 이름",
                 )
-                .name_localized("ja", "名前1")
-                .description_localized("ja", "参加者1の名前")
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
                     "name2",
-                    "A name of player2",
+                    "참가자 2의 이름",
                 )
-                .name_localized("ja", "名前2")
-                .description_localized("ja", "参加者2の名前")
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
                     "comment",
-                    "A comment for the roll",
+                    "판정 설명",
                 )
-                .name_localized("ja", "コメント")
-                .description_localized("ja", "ダイスの説明"),
             )
     }
 
@@ -260,14 +234,14 @@ impl BotCommand for Op7Command {
 
         let name1 = interaction
             .get_string_option("name1".into())
-            .unwrap_or("player1");
+            .unwrap_or("참가자 1");
         let name2 = interaction
             .get_string_option("name2".into())
-            .unwrap_or("player2");
+            .unwrap_or("참가자 2");
 
         let comment = interaction
             .get_string_option("comment".into())
-            .unwrap_or("A competition");
+            .unwrap_or("대항 판정");
 
         fn roll_dice(status: i32, bonus: i32) -> (String, RollResult) {
             let mut rng = rand::thread_rng();
