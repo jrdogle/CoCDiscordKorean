@@ -60,7 +60,7 @@ impl BotCommand for SkillCommand {
         CreateCommand::new(self.name())
             .description("크툴루의 부름 7판 룰에 따라 기능 판정을 합니다.")
             .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "수치", "기능 수치")
+                CreateCommandOption::new(CommandOptionType::Integer, "수치", "판정하려는 기능 수치")
                     .required(false),
             )
             .add_option(
@@ -80,7 +80,7 @@ impl BotCommand for SkillCommand {
                     .required(false),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "기능이름", "판정 설명"),
+                CreateCommandOption::new(CommandOptionType::String, "기능이름", "판정하려는 기능 이름"),
             )
     }
 
@@ -156,29 +156,94 @@ impl BotCommand for UseLuckCommand {
 
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("운을 소모하여 실패한 판정을 보통 성공으로 수정합니다.")
+            .description("운을 소모하여 실패한 판정을 원하는 성공 수준으로 수정합니다.")
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "주사위값", "나온 주사위 값 (예: 52)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "목표값", "목표했던 성공 수치 (예: 50)").required(true))
+            .add_option(
+                CreateCommandOption::new(CommandOptionType::String, "목표성공", "달성하고자 하는 성공 수준")
+                    .add_string_choice("보통 성공", "regular")
+                    .add_string_choice("어려운 성공", "hard")
+                    .add_string_choice("극단적 성공", "extreme")
+                    .add_string_choice("대성공", "critical")
+                    .required(true)
+            )
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "기능수치", "판정했던 기능의 원래 수치 (직접 입력 시)").required(false))
+            .add_option(
+                CreateCommandOption::new(CommandOptionType::String, "특성치", "시트에 저장된 특성치로 판정했던 경우")
+                    .add_string_choice("근력", "str")
+                    .add_string_choice("건강", "con")
+                    .add_string_choice("크기", "siz")
+                    .add_string_choice("민첩", "dex")
+                    .add_string_choice("외모", "app")
+                    .add_string_choice("지능", "int")
+                    .add_string_choice("정신", "pow")
+                    .add_string_choice("교육", "edu")
+                    .add_string_choice("체력", "hp")
+                    .add_string_choice("마력", "mp")
+                    .add_string_choice("운", "luck")
+                    .add_string_choice("이성", "san")
+                    .required(false),
+            )
     }
 
     async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
         let roll = interaction.get_int_option("주사위값".into()).unwrap();
-        let target = interaction.get_int_option("목표값".into()).unwrap();
+        let target_level = interaction.get_string_option("목표성공".into()).unwrap();
         let user_id = interaction.user.id;
 
-        let cost = roll - target;
-        if cost <= 0 {
-            return Ok(CommandStatus::Err("수정할 필요 없이 이미 성공한 수치입니다!".to_string()));
-        }
-
+        let mut chance_val = interaction.get_int_option("기능수치".into());
+        let stat_opt = interaction.get_string_option("특성치".into());
+        let mut character_name = interaction.get_nickname();
+        
         let mut current_luck = 0;
         let mut success = false;
-        let mut character_name = interaction.get_nickname();
 
         let store = {
             let data = ctx.data.read().await;
             data.get::<SheetStore>().cloned()
         };
+
+        if stat_opt.is_some() || chance_val.is_none() {
+            if let Some(store) = &store {
+                let sheets = store.read().await;
+                if let Some(sheet) = sheets.get(&user_id.to_string()) {
+                    if !sheet.name.is_empty() { character_name = sheet.name.clone(); }
+                    if let Some(stat) = stat_opt {
+                        match stat {
+                            "str" => chance_val = Some(sheet.str_val),
+                            "con" => chance_val = Some(sheet.con_val),
+                            "siz" => chance_val = Some(sheet.siz_val),
+                            "dex" => chance_val = Some(sheet.dex_val),
+                            "app" => chance_val = Some(sheet.app_val),
+                            "int" => chance_val = Some(sheet.int_val),
+                            "pow" => chance_val = Some(sheet.pow_val),
+                            "edu" => chance_val = Some(sheet.edu_val),
+                            "hp" => chance_val = Some(sheet.hp),
+                            "mp" => chance_val = Some(sheet.mp),
+                            "luck" => chance_val = Some(sheet.luck),
+                            "san" => chance_val = Some(sheet.san),
+                            _ => {}
+                        }
+                    }
+                }
+            }
+        }
+
+        let chance = match chance_val {
+            Some(v) => v,
+            None => return Ok(CommandStatus::Err("기능 수치(`기능수치`)를 직접 입력하거나 판정할 특성치(`특성치`)를 선택해야 합니다.".to_string())),
+        };
+
+        let (target, level_str, icon) = match target_level {
+            "critical" => (1, "대성공", ":star::crown::star:"),
+            "extreme" => (chance / 5, "극단적 성공", ":crown:"),
+            "hard" => (chance / 2, "어려운 성공", ":o:"),
+            _ => (chance, "보통 성공", ":o:"),
+        };
+
+        let cost = roll - target;
+        if cost <= 0 {
+            return Ok(CommandStatus::Err(format!("수정할 필요 없이 이미 **{}** 이상을 달성한 수치입니다! (현재 주사위: {}, 목표: {})", level_str, roll, target)));
+        }
 
         if let Some(store) = store {
             let mut sheets = store.write().await;
@@ -203,7 +268,7 @@ impl BotCommand for UseLuckCommand {
             let embed = CreateEmbed::new()
                 .title(format!("{}의 운 소모!", character_name))
                 .description(format!("운을 **{}** 소모하여 판정을 수정했습니다!\n(남은 운: **{}**)", cost, current_luck))
-                .field("판정 결과", format!("{} ➔ **{}** (보통 성공)", roll, target), false);
+                .field("판정 결과", format!("{} ➔ **{}** ({} {})", roll, target, icon, level_str), false);
 
             interaction.send_embed(ctx, embed).await?;
             Ok(CommandStatus::Ok)
@@ -300,7 +365,7 @@ impl BotCommand for SanRollCommand {
         }
 
         let embed = CreateEmbed::new()
-            .title(format!("{}의 이성(SAN) 판정", character_name))
+            .title(format!("{}의 이성 판정", character_name))
             .field("판정 결과", result_text, false)
             .field("이성 감소", desc, false);
 

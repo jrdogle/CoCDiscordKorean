@@ -7,7 +7,7 @@ use serenity::model::application::CommandInteraction;
 use serenity::prelude::{Context, TypeMapKey};
 use tokio::sync::RwLock;
 
-use crate::commands::{BotCommand, CommandStatus, InteractionUtil, SendEmbed};
+use crate::commands::{BotCommand, CommandStatus, SendEmbed};
 
 pub struct ChannelStore;
 impl TypeMapKey for ChannelStore {
