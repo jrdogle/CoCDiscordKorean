@@ -1,18 +1,8 @@
 # Unofficial Cthulhu Bot
 
-[![Test](https://github.com/caphosra/cthulhu_bot/actions/workflows/test.yml/badge.svg)](https://github.com/caphosra/cthulhu_bot/actions/workflows/test.yml)
-[![Build](https://github.com/caphosra/cthulhu_bot/actions/workflows/build.yml/badge.svg)](https://github.com/caphosra/cthulhu_bot/actions/workflows/build.yml)
-[![GitHub issues](https://img.shields.io/github/issues/caphosra/cthulhu_bot)](https://github.com/caphosra/cthulhu_bot/issues)
-
-<p align="center">
-    <img width="500" height="400" src="https://raw.githubusercontent.com/caphosra/cthulhu_bot/master/img/icon.png">
-</p>
-
 This bot emulates dice rolling. It is tuned for CoC, but you can use this for general purposes.
 
 **Note that  Chaosium Inc. owns the copyright of Call of Cthulhu.**
-
-[Invite this bot!](https://discord.com/api/oauth2/authorize?client_id=811123481370558505&permissions=277025572928&scope=bot%20applications.commands)
 
 ## Commands available
 
@@ -20,7 +10,6 @@ This bot emulates dice rolling. It is tuned for CoC, but you can use this for ge
 |:---|:---:|:---|
 |`/choose`||Makes a random choice.|
 |`/cs`|:star:|Creates a character sheet.|
-|`/op6`||Does an opposed roll following the Call of Cthulhu 6th Edition.|
 |`/op7`||Does an opposed roll following the Call of Cthulhu 7th Edition.|
 |`/roll`|:star:|Rolls designated dices. Expressions supported by [Tyche](https://github.com/Gawdl3y/tyche-rs) can be used.|
 |`/skill`|:star:|Does a skill roll. Alias for `/sk6`.|
@@ -33,28 +22,14 @@ This bot emulates dice rolling. It is tuned for CoC, but you can use this for ge
 
 Command: `/roll` dice:`3d5 + 2d4`
 
-<p align="center">
-    <img width="250" height="122" src="https://raw.githubusercontent.com/caphosra/cthulhu_bot/master/img/01.png">
-</p>
-
 ### Attempts a skill roll.
 
 Command: `/skill` value:`50` comment:`Listen`
 
-<p align="center">
-    <img width="250" height="120" src="https://raw.githubusercontent.com/caphosra/cthulhu_bot/master/img/02.png">
-</p>
-
 ### Create a character sheet
 
-Command: `/cs`
-
-<p align="center">
-    <img width="250" height="171" src="https://raw.githubusercontent.com/caphosra/cthulhu_bot/master/img/03.png">
-</p>
+Command: `/cs` 근력:`60` 건강:`60` 크기:`65` 민첩:`70` 외모:`50` 지능:`65` 정신:`50` 교육:`75`
 
 ## Memo
 
-Inspired by [Sidekick](https://github.com/ArtemGr/Sidekick), which is no longer available.
-
-If you find a security threat to this bot or have some requests, feel free to contact caphosra[at]gmail.com
+Inspired by [Caphorsa](https://github.com/caphosra/cthulhu_bot).

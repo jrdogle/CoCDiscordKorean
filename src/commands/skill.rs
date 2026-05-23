@@ -6,11 +6,8 @@ use serenity::prelude::Context;
 
 use crate::commands::{BotCommand, CommandStatus, InteractionUtil, SendEmbed};
 
-/// A command that does a skill roll. It follows Call of Cthulhu 6th Edition.
-pub struct SkillCommand;
-
-/// A command that does a skill roll. It follows Call of Cthulhu 6th Edition.
-pub struct Sk6Command;
+/// A helper for skill rolls.
+struct SkillHelper;
 
 /// A command that does a skill roll. It follows Call of Cthulhu 7th Edition.
 pub struct Sk7Command;
@@ -21,46 +18,7 @@ pub struct SkDGCommand;
 /// A command that does a skill roll. It follows the BRP 2023 rule book.
 pub struct SkBRPCommand;
 
-impl SkillCommand {
-    /// Does a skill roll following the rule of Call of Cthulhu 6th Edition.
-    async fn execute_6th(ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
-        let chance = interaction.get_int_option("chance".to_string()).unwrap();
-
-        let comment = interaction
-            .get_string_option("comment".to_string())
-            .unwrap_or("기능");
-
-        let (result, roll) = match rand::thread_rng().gen_range(1..=100) {
-            result if (result == 1 && result <= chance) => (
-                ":star::crown::star: **대성공!!!**",
-                format!("1 <= {}", chance),
-            ),
-            result if result <= 5 && (result <= chance) => {
-                (":crown: **대성공!**", format!("{} <= {}", result, chance))
-            }
-            result if result == 100 && (result > chance) => (
-                ":fire::skull::fire: **펌블!!!**",
-                format!("100 > {}", chance),
-            ),
-            result if result > 95 && (result > chance) => {
-                (":skull: **펌블!**", format!("{} > {}", result, chance))
-            }
-            result if result <= chance => (":o: **보통 성공**", format!("{} <= {}", result, chance)),
-            result => (":x: **실패**", format!("{} > {}", result, chance)),
-        };
-
-        interaction
-            .send_embed(
-                ctx,
-                CreateEmbed::new()
-                    .title(format!("{}의 {} 판정", interaction.get_nickname(), comment))
-                    .field(result, roll, false),
-            )
-            .await?;
-
-        Ok(CommandStatus::Ok)
-    }
-
+impl SkillHelper {
     /// Does a skill roll following the rule of Call of Cthulhu 7th Edition.
     async fn execute_7th(ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
         let chance = interaction.get_int_option("chance".to_string()).unwrap();
@@ -83,7 +41,7 @@ impl SkillCommand {
                 format!("{} <= {} / 2", result, chance),
             ),
             result if result == 100 || (result > 95 && chance < 50) => {
-                (":skull: **펌블!**", format!("{} >= {}", result, chance))
+                (":skull: **대실패!!!**", format!("{} >= {}", result, chance))
             }
             result if result <= chance => (":o: **보통 성공**", format!("{} <= {}", result, chance)),
             result => (":x: **실패**", format!("{} > {}", result, chance)),
@@ -124,7 +82,7 @@ impl SkillCommand {
                 format!("100 > {}", chance),
             ),
             result if result > 95 && (result > chance) => {
-                (":skull: **펌블!**", format!("{} > {}", result, chance))
+                (":skull: **대실패!!!**", format!("{} > {}", result, chance))
             }
             result if result <= chance => (":o: **보통 성공**", format!("{} <= {}", result, chance)),
             result => (":x: **실패**", format!("{} > {}", result, chance)),
@@ -158,7 +116,7 @@ impl SkillCommand {
                 (":crown: **특수 성공!**", format!("{} <= {}", result, chance))
             }
             result if result >= i32::min(96 + (chance - 1) / 20, 100) && (result > chance) => {
-                (":skull: **펌블!**", format!("{} > {}", result, chance))
+                (":skull: **대실패!!!**", format!("{} > {}", result, chance))
             }
             result if result <= chance => (":o: **보통 성공**", format!("{} <= {}", result, chance)),
             result => (":x: **실패**", format!("{} > {}", result, chance)),
@@ -174,54 +132,6 @@ impl SkillCommand {
             .await?;
 
         Ok(CommandStatus::Ok)
-    }
-}
-
-#[naming]
-#[serenity::async_trait]
-impl BotCommand for SkillCommand {
-    fn create(&self) -> CreateCommand {
-        CreateCommand::new(self.name())
-            .description("기능 판정을 합니다. `/sk6` (크툴루의 부름 6판)과 동일합니다.")
-            .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "chance", "기능 수치")
-                    .required(true),
-            )
-            .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "comment", "판정 설명"),
-            )
-    }
-
-    async fn execute(
-        &self,
-        ctx: &Context,
-        interaction: &CommandInteraction,
-    ) -> Result<CommandStatus> {
-        Self::execute_6th(ctx, interaction).await
-    }
-}
-
-#[naming]
-#[serenity::async_trait]
-impl BotCommand for Sk6Command {
-    fn create(&self) -> CreateCommand {
-        CreateCommand::new(self.name())
-            .description("크툴루의 부름 6판 룰에 따라 기능 판정을 합니다.")
-            .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "chance", "기능 수치")
-                    .required(true),
-            )
-            .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "comment", "판정 설명"),
-            )
-    }
-
-    async fn execute(
-        &self,
-        ctx: &Context,
-        interaction: &CommandInteraction,
-    ) -> Result<CommandStatus> {
-        SkillCommand::execute_6th(ctx, interaction).await
     }
 }
 
@@ -245,7 +155,7 @@ impl BotCommand for Sk7Command {
         ctx: &Context,
         interaction: &CommandInteraction,
     ) -> Result<CommandStatus> {
-        SkillCommand::execute_7th(ctx, interaction).await
+        SkillHelper::execute_7th(ctx, interaction).await
     }
 }
 
@@ -269,7 +179,7 @@ impl BotCommand for SkDGCommand {
         ctx: &Context,
         interaction: &CommandInteraction,
     ) -> Result<CommandStatus> {
-        SkillCommand::execute_dg(ctx, interaction).await
+        SkillHelper::execute_dg(ctx, interaction).await
     }
 }
 
@@ -293,6 +203,6 @@ impl BotCommand for SkBRPCommand {
         ctx: &Context,
         interaction: &CommandInteraction,
     ) -> Result<CommandStatus> {
-        SkillCommand::execute_brp(ctx, interaction).await
+        SkillHelper::execute_brp(ctx, interaction).await
     }
 }

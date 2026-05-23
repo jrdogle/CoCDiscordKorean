@@ -10,9 +10,9 @@ use serenity::prelude::Context;
 
 use crate::commands::choose::ChooseCommand;
 use crate::commands::create_sheet::CSCommand;
-use crate::commands::opposed::{Op6Command, Op7Command};
+use crate::commands::opposed::Op7Command;
 use crate::commands::roll::RollCommand;
-use crate::commands::skill::{Sk6Command, Sk7Command, SkBRPCommand, SkDGCommand, SkillCommand};
+use crate::commands::skill::{Sk7Command, SkBRPCommand, SkDGCommand};
 use crate::logging::BotEventCounter;
 
 /// Represents a handled result of the command.
@@ -45,13 +45,10 @@ static REGISTERED_COMMANDS: Lazy<Vec<Box<dyn BotCommand + Sync + Send>>> = Lazy:
         Box::new(ChooseCommand),
         Box::new(CSCommand),
         Box::new(RollCommand),
-        Box::new(Op6Command),
         Box::new(Op7Command),
-        Box::new(Sk6Command),
         Box::new(Sk7Command),
         Box::new(SkDGCommand),
         Box::new(SkBRPCommand),
-        Box::new(SkillCommand),
     ]
 });
 
