@@ -5,7 +5,6 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serenity::builder::{CreateCommand, CreateCommandOption, CreateEmbed};
 use serenity::model::application::{CommandInteraction, CommandOptionType};
-use serenity::model::id::UserId;
 use serenity::prelude::Context;
 use serenity::prelude::TypeMapKey;
 use tokio::sync::RwLock;
@@ -65,15 +64,15 @@ impl BotCommand for CSCommand {
         CreateCommand::new(self.name())
             .description("탐사자 시트를 생성합니다.")
             .add_option(CreateCommandOption::new(CommandOptionType::String, "이름", "탐사자 이름").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "근력", "근력 (STR)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "건강", "건강 (CON)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "크기", "크기 (SIZ)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "민첩", "민첩 (DEX)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "외모", "외모 (APP)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "지능", "지능 (INT)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "정신", "정신 (POW)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "교육", "교육 (EDU)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "운", "운 (Luck)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "근력", "근력").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "건강", "건강").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "크기", "크기").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "민첩", "민첩").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "외모", "외모").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "지능", "지능").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "정신", "정신").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "교육", "교육").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "운", "운").required(true))
     }
 
     async fn execute(
@@ -182,7 +181,7 @@ impl BotCommand for ShowSheetCommand {
             interaction.send_embed(ctx, embed).await?;
             Ok(CommandStatus::Ok)
         } else {
-            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
+            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/시트생성` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
         }
     }
 }
@@ -243,18 +242,18 @@ impl BotCommand for EditStatCommand {
             .description("내 탐사자 시트의 특정 특성치를 수정합니다.")
             .add_option(
                 CreateCommandOption::new(CommandOptionType::String, "특성치", "수정할 특성치")
-                    .add_string_choice("근력 (STR)", "str")
-                    .add_string_choice("건강 (CON)", "con")
-                    .add_string_choice("크기 (SIZ)", "siz")
-                    .add_string_choice("민첩 (DEX)", "dex")
-                    .add_string_choice("외모 (APP)", "app")
-                    .add_string_choice("지능 (INT)", "int")
-                    .add_string_choice("정신 (POW)", "pow")
-                    .add_string_choice("교육 (EDU)", "edu")
-                    .add_string_choice("체력 (HP)", "hp")
-                    .add_string_choice("마력 (MP)", "mp")
-                    .add_string_choice("운 (Luck)", "luck")
-                    .add_string_choice("이성 (SAN)", "san")
+                    .add_string_choice("근력", "str")
+                    .add_string_choice("건강", "con")
+                    .add_string_choice("크기", "siz")
+                    .add_string_choice("민첩", "dex")
+                    .add_string_choice("외모", "app")
+                    .add_string_choice("지능", "int")
+                    .add_string_choice("정신", "pow")
+                    .add_string_choice("교육", "edu")
+                    .add_string_choice("체력", "hp")
+                    .add_string_choice("마력", "mp")
+                    .add_string_choice("운", "luck")
+                    .add_string_choice("이성", "san")
                     .required(true),
             )
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "수치", "새로운 수치").required(true))
@@ -278,20 +277,20 @@ impl BotCommand for EditStatCommand {
             if let Some(sheet) = sheets.get_mut(&user_id.to_string()) {
                 success = true;
                 match stat {
-                        "str" => { sheet.str_val = value; stat_name = "근력 (STR)"; }
-                        "con" => { sheet.con_val = value; stat_name = "건강 (CON)"; }
-                        "siz" => { sheet.siz_val = value; stat_name = "크기 (SIZ)"; }
-                        "dex" => { sheet.dex_val = value; stat_name = "민첩 (DEX)"; }
-                        "app" => { sheet.app_val = value; stat_name = "외모 (APP)"; }
-                        "int" => { sheet.int_val = value; stat_name = "지능 (INT)"; }
-                        "pow" => { sheet.pow_val = value; stat_name = "정신 (POW)"; }
-                        "edu" => { sheet.edu_val = value; stat_name = "교육 (EDU)"; }
-                        "hp" => { sheet.hp = value; stat_name = "체력 (HP)"; }
-                        "mp" => { sheet.mp = value; stat_name = "마력 (MP)"; }
-                        "luck" => { sheet.luck = value; stat_name = "운 (Luck)"; }
+                        "str" => { sheet.str_val = value; stat_name = "근력"; }
+                        "con" => { sheet.con_val = value; stat_name = "건강"; }
+                        "siz" => { sheet.siz_val = value; stat_name = "크기"; }
+                        "dex" => { sheet.dex_val = value; stat_name = "민첩"; }
+                        "app" => { sheet.app_val = value; stat_name = "외모"; }
+                        "int" => { sheet.int_val = value; stat_name = "지능"; }
+                        "pow" => { sheet.pow_val = value; stat_name = "정신"; }
+                        "edu" => { sheet.edu_val = value; stat_name = "교육"; }
+                        "hp" => { sheet.hp = value; stat_name = "체력"; }
+                        "mp" => { sheet.mp = value; stat_name = "마력"; }
+                        "luck" => { sheet.luck = value; stat_name = "운"; }
                         "san" => { 
                             sheet.san = value; 
-                            stat_name = "이성 (SAN)"; 
+                            stat_name = "이성"; 
                             if sheet.san < (sheet.pow_val * 80 / 100) {
                                 madness_warning = true;
                             }
@@ -303,9 +302,9 @@ impl BotCommand for EditStatCommand {
         }
 
         if success {
-            let mut desc = format!("{} 수치가 **{}**(으)로 변경되었습니다. `/show_sheet`로 확인할 수 있습니다.", stat_name, value);
+            let mut desc = format!("{} 수치가 **{}**(으)로 변경되었습니다. `/시트확인`으로 확인할 수 있습니다.", stat_name, value);
             if madness_warning {
-                desc.push_str("\n\n:warning: **경고: 이성이 정신 스탯의 80% 미만으로 떨어져 광기에 걸렸습니다!**");
+                desc.push_str("\n\n:warning: **이성이 정신 스탯의 80% 미만으로 떨어져 광기에 걸렸습니다!**");
             }
             let embed = CreateEmbed::new()
                 .title("특성치 수정 완료")
@@ -313,7 +312,7 @@ impl BotCommand for EditStatCommand {
             interaction.send_embed(ctx, embed).await?;
             Ok(CommandStatus::Ok)
         } else {
-            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
+            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/시트생성` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
         }
     }
 }

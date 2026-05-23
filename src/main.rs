@@ -1,14 +1,13 @@
-#[macro_use]
 extern crate cmd_macro;
 
 use anyhow::Result;
 use log::info;
 use serenity::prelude::GatewayIntents;
 use serenity::Client;
-use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
+use crate::commands::channel::{load_channels, ChannelStore};
 use crate::commands::create_sheet::{load_sheets, SheetStore};
 use crate::config::BotConfig;
 use crate::handler::BotHandler;
@@ -20,7 +19,7 @@ async fn start_bot() -> Result<()> {
     let config = BotConfig::get();
 
     // Build a client.
-    let intents = GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT;
+    let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
     let mut client = Client::builder(&config.discord_token, intents)
         .event_handler(BotHandler)
         .await?;
@@ -30,6 +29,9 @@ async fn start_bot() -> Result<()> {
         let mut data = client.data.write().await;
         let sheets = load_sheets();
         data.insert::<SheetStore>(Arc::new(RwLock::new(sheets)));
+        
+        let channels = load_channels();
+        data.insert::<ChannelStore>(Arc::new(RwLock::new(channels)));
     }
 
     // Launch the client.

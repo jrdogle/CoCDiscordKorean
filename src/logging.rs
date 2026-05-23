@@ -135,7 +135,12 @@ impl Logger {
                     .map(|line| format!("  because: {}\n", line))
                     .collect::<Vec<_>>()
                     .concat();
+            
+            // 프로그램이 즉시 종료되어 비동기 로거가 묻히는 현상을 방지
+            eprintln!("\n[치명적 오류 발생 - 봇 종료됨]\n{}\n", text);
             error!("{}", text);
+            // 파일 로거가 기록을 마칠 수 있도록 잠시 대기
+            tokio::time::sleep(Duration::from_millis(500)).await;
         }
     }
 

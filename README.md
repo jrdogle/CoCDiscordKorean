@@ -16,6 +16,8 @@ This bot emulates dice rolling. It is tuned for CoC, but you can use this for ge
 |`/판정`|:star:|크툴루의 부름 7판 룰에 따라 기능 판정을 합니다.|
 |`/내레이션`||캐릭터 이름 없이 기울인 볼드체로 내레이션을 출력합니다.|
 |`/대사출력`||NPC의 이름으로 대사를 출력합니다.|
+|`/봇입장`||이 채널에서 봇이 작동하도록 활성화합니다.|
+|`/봇퇴장`||이 채널에서 봇이 작동하지 않도록 비활성화합니다.|
 
 ### Roll dices
 

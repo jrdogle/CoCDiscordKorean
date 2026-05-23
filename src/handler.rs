@@ -2,6 +2,7 @@ use log::info;
 use serenity::all::{Interaction, Message, Ready};
 use serenity::prelude::*;
 use crate::commands::create_sheet::SheetStore;
+use crate::commands::channel::ChannelStore;
 use crate::webhook::send_webhook;
 use crate::commands::BotCommandManager;
 
@@ -12,6 +13,17 @@ impl EventHandler for BotHandler {
     async fn message(&self, ctx: Context, msg: Message) {
     // 봇의 메시지거나, 슬래시 명령어(/), 혹은 특수 문자로 시작하면 무시 (OOC 방지 등)
     if msg.author.bot || msg.content.starts_with('/') || msg.content.starts_with('!') || msg.content.starts_with('(') {
+        return;
+    }
+
+    // 현재 채널이 봇 활성화 채널인지 검사
+    let is_active = {
+        let data = ctx.data.read().await;
+        if let Some(store) = data.get::<ChannelStore>() {
+            store.read().await.contains(&msg.channel_id.get())
+        } else { false }
+    };
+    if !is_active {
         return;
     }
 
@@ -39,6 +51,23 @@ impl EventHandler for BotHandler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command) = interaction {
+            if command.data.name.as_str() != "봇입장" {
+                let is_active = {
+                    let data = ctx.data.read().await;
+                    if let Some(store) = data.get::<ChannelStore>() {
+                        store.read().await.contains(&command.channel_id.get())
+                    } else { false }
+                };
+
+                if !is_active {
+                    let _ = command.create_response(&ctx, serenity::builder::CreateInteractionResponse::Message(
+                        serenity::builder::CreateInteractionResponseMessage::new()
+                            .content("이 채널에서는 봇이 비활성화되어 있습니다. `/봇입장`을 입력해 활성화해주세요.")
+                            .ephemeral(true)
+                    )).await;
+                    return;
+                }
+            }
             let _ = BotCommandManager::run_command(&ctx, &command).await;
         }
     }

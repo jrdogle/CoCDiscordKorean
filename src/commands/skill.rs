@@ -65,18 +65,18 @@ impl BotCommand for SkillCommand {
             )
             .add_option(
                 CreateCommandOption::new(CommandOptionType::String, "특성치", "시트에 저장된 특성치로 판정")
-                    .add_string_choice("근력 (STR)", "str")
-                    .add_string_choice("건강 (CON)", "con")
-                    .add_string_choice("크기 (SIZ)", "siz")
-                    .add_string_choice("민첩 (DEX)", "dex")
-                    .add_string_choice("외모 (APP)", "app")
-                    .add_string_choice("지능 (INT)", "int")
-                    .add_string_choice("정신 (POW)", "pow")
-                    .add_string_choice("교육 (EDU)", "edu")
-                    .add_string_choice("체력 (HP)", "hp")
-                    .add_string_choice("마력 (MP)", "mp")
-                    .add_string_choice("운 (Luck)", "luck")
-                    .add_string_choice("이성 (SAN)", "san")
+                    .add_string_choice("근력", "str")
+                    .add_string_choice("건강", "con")
+                    .add_string_choice("크기", "siz")
+                    .add_string_choice("민첩", "dex")
+                    .add_string_choice("외모", "app")
+                    .add_string_choice("지능", "int")
+                    .add_string_choice("정신", "pow")
+                    .add_string_choice("교육", "edu")
+                    .add_string_choice("체력", "hp")
+                    .add_string_choice("마력", "mp")
+                    .add_string_choice("운", "luck")
+                    .add_string_choice("이성", "san")
                     .required(false),
             )
             .add_option(
@@ -111,23 +111,23 @@ impl BotCommand for SkillCommand {
                     if !sheet.name.is_empty() { character_name = sheet.name.clone(); }
                     if let Some(stat) = stat_opt {
                         match stat {
-                            "str" => { chance_val = Some(sheet.str_val); stat_name_display = "근력 (STR)".to_string(); }
-                            "con" => { chance_val = Some(sheet.con_val); stat_name_display = "건강 (CON)".to_string(); }
-                            "siz" => { chance_val = Some(sheet.siz_val); stat_name_display = "크기 (SIZ)".to_string(); }
-                            "dex" => { chance_val = Some(sheet.dex_val); stat_name_display = "민첩 (DEX)".to_string(); }
-                            "app" => { chance_val = Some(sheet.app_val); stat_name_display = "외모 (APP)".to_string(); }
-                            "int" => { chance_val = Some(sheet.int_val); stat_name_display = "지능 (INT)".to_string(); }
-                            "pow" => { chance_val = Some(sheet.pow_val); stat_name_display = "정신 (POW)".to_string(); }
-                            "edu" => { chance_val = Some(sheet.edu_val); stat_name_display = "교육 (EDU)".to_string(); }
-                            "hp" => { chance_val = Some(sheet.hp); stat_name_display = "체력 (HP)".to_string(); }
-                            "mp" => { chance_val = Some(sheet.mp); stat_name_display = "마력 (MP)".to_string(); }
-                            "luck" => { chance_val = Some(sheet.luck); stat_name_display = "운 (Luck)".to_string(); }
-                            "san" => { chance_val = Some(sheet.san); stat_name_display = "이성 (SAN)".to_string(); }
+                            "str" => { chance_val = Some(sheet.str_val); stat_name_display = "근력".to_string(); }
+                            "con" => { chance_val = Some(sheet.con_val); stat_name_display = "건강".to_string(); }
+                            "siz" => { chance_val = Some(sheet.siz_val); stat_name_display = "크기".to_string(); }
+                            "dex" => { chance_val = Some(sheet.dex_val); stat_name_display = "민첩".to_string(); }
+                            "app" => { chance_val = Some(sheet.app_val); stat_name_display = "외모".to_string(); }
+                            "int" => { chance_val = Some(sheet.int_val); stat_name_display = "지능".to_string(); }
+                            "pow" => { chance_val = Some(sheet.pow_val); stat_name_display = "정신".to_string(); }
+                            "edu" => { chance_val = Some(sheet.edu_val); stat_name_display = "교육".to_string(); }
+                            "hp" => { chance_val = Some(sheet.hp); stat_name_display = "체력".to_string(); }
+                            "mp" => { chance_val = Some(sheet.mp); stat_name_display = "마력".to_string(); }
+                            "luck" => { chance_val = Some(sheet.luck); stat_name_display = "운".to_string(); }
+                            "san" => { chance_val = Some(sheet.san); stat_name_display = "이성".to_string(); }
                             _ => {}
                         }
                     }
                 } else if stat_opt.is_some() {
-                    return Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()));
+                    return Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/시트생성` 명령어로 먼저 시트를 생성해 주세요.".to_string()));
                 }
             }
         }
@@ -195,7 +195,7 @@ impl BotCommand for UseLuckCommand {
                     return Ok(CommandStatus::Err(format!("운이 부족합니다! (현재 운: {}, 필요 운: {})", sheet.luck, cost)));
                 }
             } else {
-                return Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()));
+                return Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/시트생성` 명령어로 먼저 시트를 생성해 주세요.".to_string()));
             }
         }
 
@@ -255,7 +255,7 @@ impl BotCommand for SanRollCommand {
         }
 
         if !has_sheet {
-            return Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()));
+            return Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/시트생성` 명령어로 먼저 시트를 생성해 주세요.".to_string()));
         }
 
         let roll = {
@@ -296,7 +296,7 @@ impl BotCommand for SanRollCommand {
         let mut desc = format!("**감소치 굴림:** {} ➔ **{}** 감소\n**남은 이성:** {} ➔ **{}**", dice_desc, loss_amount, current_san, new_san);
 
         if madness_warning {
-            desc.push_str("\n\n:warning: **경고: 이성이 정신 스탯의 80% 미만으로 떨어져 광기에 걸렸습니다!**");
+            desc.push_str("\n\n:warning: **이성이 정신 스탯의 80% 미만으로 떨어져 광기에 걸렸습니다!**");
         }
 
         let embed = CreateEmbed::new()

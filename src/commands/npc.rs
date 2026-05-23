@@ -26,9 +26,13 @@ impl BotCommand for NpcCommand {
         let name = interaction.get_string_option("이름".into()).unwrap();
         let speech = interaction.get_string_option("대사".into()).unwrap();
 
+        // 3초 타임아웃 방지 및 응답 메시지 숨기기를 위한 지연(Defer) 처리
+        interaction.create_response(ctx, CreateInteractionResponse::Defer(CreateInteractionResponseMessage::new().ephemeral(true))).await?;
+
         send_webhook(ctx, interaction.channel_id, name, None, speech).await?;
 
-        interaction.create_response(ctx, CreateInteractionResponse::Message(CreateInteractionResponseMessage::new().content("NPC 대사를 전송했습니다.").ephemeral(true))).await?;
+        // 지연(Defer)했던 응답 메시지를 삭제하여 깔끔하게 만듦
+        interaction.delete_response(ctx).await?;
 
         Ok(CommandStatus::Ok)
     }
