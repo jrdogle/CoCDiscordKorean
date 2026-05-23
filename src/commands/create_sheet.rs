@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use serenity::builder::{CreateCommand, CreateCommandOption, CreateEmbed};
+use serenity::builder::{CreateCommand, CreateCommandOption, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage};
 use serenity::model::application::{CommandInteraction, CommandOptionType};
 use serenity::prelude::Context;
 use serenity::prelude::TypeMapKey;
@@ -178,10 +178,21 @@ impl BotCommand for ShowSheetCommand {
                 .field(":four_leaf_clover: 운", s.luck.to_string(), true)
                 .field(":brain: 이성", s.san.to_string(), true);
 
-            interaction.send_embed(ctx, embed).await?;
+            interaction.create_response(
+                ctx,
+                CreateInteractionResponse::Message(
+                    CreateInteractionResponseMessage::new().add_embed(embed).ephemeral(true)
+                )
+            ).await?;
             Ok(CommandStatus::Ok)
         } else {
-            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/시트생성` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
+            interaction.create_response(
+                ctx,
+                CreateInteractionResponse::Message(
+                    CreateInteractionResponseMessage::new().content("저장된 캐릭터 시트가 없습니다. `/시트생성` 명령어로 먼저 시트를 생성해 주세요.").ephemeral(true)
+                )
+            ).await?;
+            Ok(CommandStatus::Ok)
         }
     }
 }
@@ -267,6 +278,8 @@ impl BotCommand for EditStatCommand {
         let mut success = false;
         let mut stat_name = "";
         let mut madness_warning = false;
+        let mut old_value = 0;
+        let mut character_name = String::new();
 
         let store = {
             let data = ctx.data.read().await;
@@ -276,19 +289,21 @@ impl BotCommand for EditStatCommand {
             let mut sheets = store.write().await;
             if let Some(sheet) = sheets.get_mut(&user_id.to_string()) {
                 success = true;
+                character_name = sheet.name.clone();
                 match stat {
-                        "str" => { sheet.str_val = value; stat_name = "근력"; }
-                        "con" => { sheet.con_val = value; stat_name = "건강"; }
-                        "siz" => { sheet.siz_val = value; stat_name = "크기"; }
-                        "dex" => { sheet.dex_val = value; stat_name = "민첩"; }
-                        "app" => { sheet.app_val = value; stat_name = "외모"; }
-                        "int" => { sheet.int_val = value; stat_name = "지능"; }
-                        "pow" => { sheet.pow_val = value; stat_name = "정신"; }
-                        "edu" => { sheet.edu_val = value; stat_name = "교육"; }
-                        "hp" => { sheet.hp = value; stat_name = "체력"; }
-                        "mp" => { sheet.mp = value; stat_name = "마력"; }
-                        "luck" => { sheet.luck = value; stat_name = "운"; }
+                        "str" => { old_value = sheet.str_val; sheet.str_val = value; stat_name = "근력"; }
+                        "con" => { old_value = sheet.con_val; sheet.con_val = value; stat_name = "건강"; }
+                        "siz" => { old_value = sheet.siz_val; sheet.siz_val = value; stat_name = "크기"; }
+                        "dex" => { old_value = sheet.dex_val; sheet.dex_val = value; stat_name = "민첩"; }
+                        "app" => { old_value = sheet.app_val; sheet.app_val = value; stat_name = "외모"; }
+                        "int" => { old_value = sheet.int_val; sheet.int_val = value; stat_name = "지능"; }
+                        "pow" => { old_value = sheet.pow_val; sheet.pow_val = value; stat_name = "정신"; }
+                        "edu" => { old_value = sheet.edu_val; sheet.edu_val = value; stat_name = "교육"; }
+                        "hp" => { old_value = sheet.hp; sheet.hp = value; stat_name = "체력"; }
+                        "mp" => { old_value = sheet.mp; sheet.mp = value; stat_name = "마력"; }
+                        "luck" => { old_value = sheet.luck; sheet.luck = value; stat_name = "운"; }
                         "san" => { 
+                            old_value = sheet.san;
                             sheet.san = value; 
                             stat_name = "이성"; 
                             if sheet.san < (sheet.pow_val * 80 / 100) {
@@ -302,12 +317,13 @@ impl BotCommand for EditStatCommand {
         }
 
         if success {
-            let mut desc = format!("{} 수치가 **{}**(으)로 변경되었습니다. `/시트확인`으로 확인할 수 있습니다.", stat_name, value);
+            let display_name = if character_name.is_empty() { interaction.get_nickname() } else { character_name };
+            let mut desc = format!("**{}** 수치 변경: **{}** -> **{}**", stat_name, old_value, value);
             if madness_warning {
                 desc.push_str("\n\n:warning: **이성이 정신 스탯의 80% 미만으로 떨어져 광기에 걸렸습니다!**");
             }
             let embed = CreateEmbed::new()
-                .title("특성치 수정 완료")
+                .title(format!("{}의 특성치 수정 완료", display_name))
                 .description(desc);
             interaction.send_embed(ctx, embed).await?;
             Ok(CommandStatus::Ok)
