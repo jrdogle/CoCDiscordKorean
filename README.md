@@ -12,11 +12,7 @@ This bot emulates dice rolling. It is tuned for CoC, but you can use this for ge
 |`/cs`|:star:|Creates a character sheet.|
 |`/op7`||Does an opposed roll following the Call of Cthulhu 7th Edition.|
 |`/roll`|:star:|Rolls designated dices. Expressions supported by [Tyche](https://github.com/Gawdl3y/tyche-rs) can be used.|
-|`/skill`|:star:|Does a skill roll. Alias for `/sk6`.|
-|`/sk6`||Does a skill roll following the Call of Cthulhu 6th Edition.|
 |`/sk7`|:star:|Does a skill roll following the Call of Cthulhu 7th Edition.|
-|`/skdg`||Does a skill roll following the Delta Green.|
-|`/skbrp`||Does a skill roll following the BRP 2023.|
 
 ### Roll dices
 
