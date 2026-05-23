@@ -234,7 +234,7 @@ impl BotCommand for UseLuckCommand {
         };
 
         let (target, level_str, icon) = match target_level {
-            "critical" => (1, "대성공", ":star::crown::star:"),
+            "critical" => (1, "대성공", ":star:"),
             "extreme" => (chance / 5, "극단적 성공", ":crown:"),
             "hard" => (chance / 2, "어려운 성공", ":o:"),
             _ => (chance, "보통 성공", ":o:"),

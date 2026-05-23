@@ -119,15 +119,17 @@ impl BotCommandManager {
         interaction: &CommandInteraction,
         error: String,
     ) -> Result<()> {
-        interaction
-            .send_embed(
-                ctx,
-                CreateEmbed::default()
-                    .title("ERROR")
-                    .field("Message", error, false)
-                    .colour(Colour::RED),
+        let embed = CreateEmbed::default()
+            .title("ERROR")
+            .field("Message", error, false)
+            .colour(Colour::RED);
+
+        interaction.create_response(
+            ctx,
+            CreateInteractionResponse::Message(
+                CreateInteractionResponseMessage::default().add_embed(embed).ephemeral(true)
             )
-            .await?;
+        ).await?;
 
         Ok(())
     }

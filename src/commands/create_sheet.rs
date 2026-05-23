@@ -234,7 +234,12 @@ impl BotCommand for EditNameCommand {
         let embed = CreateEmbed::new()
             .title("캐릭터 이름 설정 완료")
             .description(format!("캐릭터 이름이 **{}**에서 **{}**(으)로 변경되었습니다.\n이제 일반 채팅을 입력하면 이 캐릭터 이름으로 자동 출력됩니다.", old_name_display, new_name));
-        interaction.send_embed(ctx, embed).await?;
+        interaction.create_response(
+            ctx,
+            CreateInteractionResponse::Message(
+                CreateInteractionResponseMessage::new().add_embed(embed).ephemeral(true)
+            )
+        ).await?;
         Ok(CommandStatus::Ok)
     }
 }
