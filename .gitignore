@@ -1,4 +1,6 @@
 # Ignore configuration file containing secrets
 config.json
+bot.log
+sheets.json
 
 /target/
