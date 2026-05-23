@@ -193,20 +193,19 @@ pub struct EditNameCommand;
 #[serenity::async_trait]
 impl BotCommand for EditNameCommand {
     fn name(&self) -> &str {
-        "이름수정"
+        "이름설정"
     }
 
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
-            .description("내 탐사자 시트의 이름을 수정합니다.")
-            .add_option(CreateCommandOption::new(CommandOptionType::String, "이름", "새로운 탐사자 이름").required(true))
+            .description("채팅에 표시될 내 캐릭터 이름을 설정하거나 변경합니다.")
+            .add_option(CreateCommandOption::new(CommandOptionType::String, "이름", "새로운 캐릭터 이름").required(true))
     }
 
     async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
         let new_name = interaction.get_string_option("이름".into()).unwrap().to_string();
         let user_id = interaction.user.id;
 
-        let mut success = false;
         let mut old_name = String::new();
 
         let store = {
@@ -215,24 +214,18 @@ impl BotCommand for EditNameCommand {
         };
         if let Some(store) = store {
             let mut sheets = store.write().await;
-            if let Some(sheet) = sheets.get_mut(&user_id.to_string()) {
-                old_name = sheet.name.clone();
-                sheet.name = new_name.clone();
-                success = true;
-                save_sheets(&sheets).await;
-            }
+            let sheet = sheets.entry(user_id.to_string()).or_insert_with(CharacterSheet::default);
+            old_name = sheet.name.clone();
+            sheet.name = new_name.clone();
+            save_sheets(&sheets).await;
         }
 
-        if success {
-            let old_name_display = if old_name.is_empty() { "이름 없음".to_string() } else { old_name };
-            let embed = CreateEmbed::new()
-                .title("이름 수정 완료")
-                .description(format!("탐사자 이름이 **{}**에서 **{}**(으)로 변경되었습니다.", old_name_display, new_name));
-            interaction.send_embed(ctx, embed).await?;
-            Ok(CommandStatus::Ok)
-        } else {
-            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
-        }
+        let old_name_display = if old_name.is_empty() { "이름 없음".to_string() } else { old_name };
+        let embed = CreateEmbed::new()
+            .title("캐릭터 이름 설정 완료")
+            .description(format!("캐릭터 이름이 **{}**에서 **{}**(으)로 변경되었습니다.\n이제 일반 채팅을 입력하면 이 캐릭터 이름으로 자동 출력됩니다.", old_name_display, new_name));
+        interaction.send_embed(ctx, embed).await?;
+        Ok(CommandStatus::Ok)
     }
 }
 

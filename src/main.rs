@@ -20,7 +20,7 @@ async fn start_bot() -> Result<()> {
     let config = BotConfig::get();
 
     // Build a client.
-    let intents = GatewayIntents::empty();
+    let intents = GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT;
     let mut client = Client::builder(&config.discord_token, intents)
         .event_handler(BotHandler)
         .await?;
@@ -66,3 +66,4 @@ pub mod commands;
 pub mod config;
 pub mod handler;
 pub mod logging;
+pub mod webhook;

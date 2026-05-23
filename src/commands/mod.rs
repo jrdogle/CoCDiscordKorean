@@ -13,6 +13,8 @@ use crate::commands::create_sheet::{CSCommand, EditNameCommand, EditStatCommand,
 use crate::commands::opposed::Op7Command;
 use crate::commands::roll::RollCommand;
 use crate::commands::skill::{SanRollCommand, SkillCommand, UseLuckCommand};
+use crate::commands::desc::DescCommand;
+use crate::commands::npc::NpcCommand;
 use crate::logging::BotEventCounter;
 
 /// Represents a handled result of the command.
@@ -52,6 +54,8 @@ static REGISTERED_COMMANDS: Lazy<Vec<Box<dyn BotCommand + Sync + Send>>> = Lazy:
         Box::new(SkillCommand),
         Box::new(UseLuckCommand),
         Box::new(SanRollCommand),
+        Box::new(DescCommand),
+        Box::new(NpcCommand),
     ]
 });
 
@@ -189,3 +193,5 @@ pub mod create_sheet;
 pub mod opposed;
 pub mod roll;
 pub mod skill;
+pub mod desc;
+pub mod npc;
