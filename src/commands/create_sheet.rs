@@ -1,9 +1,55 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
 use serenity::builder::{CreateCommand, CreateCommandOption, CreateEmbed};
 use serenity::model::application::{CommandInteraction, CommandOptionType};
+use serenity::model::id::UserId;
 use serenity::prelude::Context;
+use serenity::prelude::TypeMapKey;
+use tokio::sync::RwLock;
 
 use crate::commands::{BotCommand, CommandStatus, InteractionUtil, SendEmbed};
+
+#[derive(Clone, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct CharacterSheet {
+    pub name: String,
+    pub str_val: i32,
+    pub con_val: i32,
+    pub siz_val: i32,
+    pub dex_val: i32,
+    pub app_val: i32,
+    pub int_val: i32,
+    pub pow_val: i32,
+    pub edu_val: i32,
+    pub hp: i32,
+    pub hp_max: i32,
+    pub mp: i32,
+    pub mp_max: i32,
+    pub luck: i32,
+}
+
+pub struct SheetStore;
+impl TypeMapKey for SheetStore {
+    type Value = Arc<RwLock<HashMap<String, CharacterSheet>>>;
+}
+
+pub fn load_sheets() -> HashMap<String, CharacterSheet> {
+    let file_path = std::path::Path::new("sheets.json");
+    if let Ok(json) = std::fs::read_to_string(file_path) {
+        return serde_json::from_str(&json).unwrap_or_default();
+    }
+    HashMap::new()
+}
+
+pub async fn save_sheets(sheets: &HashMap<String, CharacterSheet>) {
+    if let Ok(json) = serde_json::to_string_pretty(sheets) {
+        let file_path = std::path::Path::new("sheets.json");
+        let _ = tokio::fs::write(file_path, json).await;
+    }
+}
 
 /// A command that creates a character sheet.
 pub struct CSCommand;
@@ -14,6 +60,7 @@ impl BotCommand for CSCommand {
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("탐사자 시트를 생성합니다.")
+            .add_option(CreateCommandOption::new(CommandOptionType::String, "name", "탐사자 이름").required(true))
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "str", "근력 (STR)").required(true))
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "con", "건강 (CON)").required(true))
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "siz", "크기 (SIZ)").required(true))
@@ -22,6 +69,7 @@ impl BotCommand for CSCommand {
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "int", "지능 (INT)").required(true))
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "pow", "정신 (POW)").required(true))
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "edu", "교육 (EDU)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "luck", "운 (Luck)").required(true))
     }
 
     async fn execute(
@@ -29,19 +77,38 @@ impl BotCommand for CSCommand {
         ctx: &Context,
         interaction: &CommandInteraction,
     ) -> Result<CommandStatus> {
-        let author = interaction.get_nickname();
+        let user_id = interaction.user.id;
 
-        let str_val = interaction.get_int_option("근력".into()).unwrap();
-        let con_val = interaction.get_int_option("건강".into()).unwrap();
-        let siz_val = interaction.get_int_option("크기".into()).unwrap();
-        let dex_val = interaction.get_int_option("민첩".into()).unwrap();
-        let app_val = interaction.get_int_option("외모".into()).unwrap();
-        let int_val = interaction.get_int_option("지능".into()).unwrap();
-        let pow_val = interaction.get_int_option("정신".into()).unwrap();
-        let edu_val = interaction.get_int_option("교육".into()).unwrap();
+        let name = interaction.get_string_option("name".into()).unwrap().to_string();
+        let str_val = interaction.get_int_option("str".into()).unwrap();
+        let con_val = interaction.get_int_option("con".into()).unwrap();
+        let siz_val = interaction.get_int_option("siz".into()).unwrap();
+        let dex_val = interaction.get_int_option("dex".into()).unwrap();
+        let app_val = interaction.get_int_option("app".into()).unwrap();
+        let int_val = interaction.get_int_option("int".into()).unwrap();
+        let pow_val = interaction.get_int_option("pow".into()).unwrap();
+        let edu_val = interaction.get_int_option("edu".into()).unwrap();
+        let luck = interaction.get_int_option("luck".into()).unwrap();
+
+        let hp_max = (con_val + siz_val) / 10;
+        let mp_max = pow_val / 5;
+
+        let sheet = CharacterSheet { 
+            name: name.clone(), str_val, con_val, siz_val, dex_val, app_val, int_val, pow_val, edu_val, hp: hp_max, hp_max, mp: mp_max, mp_max, luck 
+        };
+
+        let store = {
+            let data = ctx.data.read().await;
+            data.get::<SheetStore>().cloned()
+        };
+        if let Some(store) = store {
+            let mut sheets = store.write().await;
+            sheets.insert(user_id.to_string(), sheet);
+            save_sheets(&sheets).await;
+        }
 
         let embed = CreateEmbed::new()
-            .title(format!("{}의 탐사자", author))
+            .title(format!("탐사자: {}", name))
             .field(":muscle: 근력", str_val.to_string(), true)
             .field(":shield: 건강", con_val.to_string(), true)
             .field(":straight_ruler: 크기", siz_val.to_string(), true)
@@ -49,10 +116,182 @@ impl BotCommand for CSCommand {
             .field(":sparkles: 외모", app_val.to_string(), true)
             .field(":bulb: 지능", int_val.to_string(), true)
             .field(":crystal_ball: 정신", pow_val.to_string(), true)
-            .field(":mortar_board: 교육", edu_val.to_string(), true);
+            .field(":mortar_board: 교육", edu_val.to_string(), true)
+            .field(":heart: 체력", format!("{}/{}", hp_max, hp_max), true)
+            .field(":star: 마력", format!("{}/{}", mp_max, mp_max), true)
+            .field(":four_leaf_clover: 운", luck.to_string(), true);
 
         interaction.send_embed(ctx, embed).await?;
 
         Ok(CommandStatus::Ok)
+    }
+}
+
+/// A command that shows the saved character sheet.
+pub struct ShowSheetCommand;
+
+#[naming]
+#[serenity::async_trait]
+impl BotCommand for ShowSheetCommand {
+    fn create(&self) -> CreateCommand {
+        CreateCommand::new(self.name()).description("내 탐사자 시트 현황을 확인합니다.")
+    }
+
+    async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
+        let user_id = interaction.user.id;
+        let author = interaction.get_nickname();
+
+        let sheet = {
+            let store = {
+                let data = ctx.data.read().await;
+                data.get::<SheetStore>().cloned()
+            };
+            if let Some(store) = store {
+                store.read().await.get(&user_id.to_string()).cloned()
+            } else {
+                None
+            }
+        };
+
+        if let Some(s) = sheet {
+            let display_name = if s.name.is_empty() { author } else { s.name.clone() };
+            let embed = CreateEmbed::new()
+                .title(format!("탐사자: {}", display_name))
+                .field(":muscle: 근력", s.str_val.to_string(), true)
+                .field(":shield: 건강", s.con_val.to_string(), true)
+                .field(":straight_ruler: 크기", s.siz_val.to_string(), true)
+                .field(":runner: 민첩", s.dex_val.to_string(), true)
+                .field(":sparkles: 외모", s.app_val.to_string(), true)
+                .field(":bulb: 지능", s.int_val.to_string(), true)
+                .field(":crystal_ball: 정신", s.pow_val.to_string(), true)
+                .field(":mortar_board: 교육", s.edu_val.to_string(), true)
+                .field(":heart: 체력", format!("{}/{}", s.hp, s.hp_max), true)
+                .field(":star: 마력", format!("{}/{}", s.mp, s.mp_max), true)
+                .field(":four_leaf_clover: 운", s.luck.to_string(), true);
+
+            interaction.send_embed(ctx, embed).await?;
+            Ok(CommandStatus::Ok)
+        } else {
+            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
+        }
+    }
+}
+
+/// A command that edits the name in the character sheet.
+pub struct EditNameCommand;
+
+#[naming]
+#[serenity::async_trait]
+impl BotCommand for EditNameCommand {
+    fn create(&self) -> CreateCommand {
+        CreateCommand::new(self.name())
+            .description("내 탐사자 시트의 이름을 수정합니다.")
+            .add_option(CreateCommandOption::new(CommandOptionType::String, "name", "새로운 탐사자 이름").required(true))
+    }
+
+    async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
+        let new_name = interaction.get_string_option("name".into()).unwrap().to_string();
+        let user_id = interaction.user.id;
+
+        let mut success = false;
+        let mut old_name = String::new();
+
+        let store = {
+            let data = ctx.data.read().await;
+            data.get::<SheetStore>().cloned()
+        };
+        if let Some(store) = store {
+            let mut sheets = store.write().await;
+            if let Some(sheet) = sheets.get_mut(&user_id.to_string()) {
+                old_name = sheet.name.clone();
+                sheet.name = new_name.clone();
+                success = true;
+                save_sheets(&sheets).await;
+            }
+        }
+
+        if success {
+            let old_name_display = if old_name.is_empty() { "이름 없음".to_string() } else { old_name };
+            let embed = CreateEmbed::new()
+                .title("이름 수정 완료")
+                .description(format!("탐사자 이름이 **{}**에서 **{}**(으)로 변경되었습니다.", old_name_display, new_name));
+            interaction.send_embed(ctx, embed).await?;
+            Ok(CommandStatus::Ok)
+        } else {
+            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
+        }
+    }
+}
+
+/// A command that edits a specific status in the character sheet.
+pub struct EditStatCommand;
+
+#[naming]
+#[serenity::async_trait]
+impl BotCommand for EditStatCommand {
+    fn create(&self) -> CreateCommand {
+        CreateCommand::new(self.name())
+            .description("내 탐사자 시트의 특정 특성치를 수정합니다.")
+            .add_option(
+                CreateCommandOption::new(CommandOptionType::String, "stat", "수정할 특성치")
+                    .add_string_choice("근력 (STR)", "str")
+                    .add_string_choice("건강 (CON)", "con")
+                    .add_string_choice("크기 (SIZ)", "siz")
+                    .add_string_choice("민첩 (DEX)", "dex")
+                    .add_string_choice("외모 (APP)", "app")
+                    .add_string_choice("지능 (INT)", "int")
+                    .add_string_choice("정신 (POW)", "pow")
+                    .add_string_choice("교육 (EDU)", "edu")
+                    .add_string_choice("체력 (HP)", "hp")
+                    .add_string_choice("마력 (MP)", "mp")
+                    .add_string_choice("운 (Luck)", "luck")
+                    .required(true),
+            )
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "value", "새로운 수치").required(true))
+    }
+
+    async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
+        let stat = interaction.get_string_option("stat".into()).unwrap();
+        let value = interaction.get_int_option("value".into()).unwrap();
+        let user_id = interaction.user.id;
+
+        let mut success = false;
+        let mut stat_name = "";
+
+        let store = {
+            let data = ctx.data.read().await;
+            data.get::<SheetStore>().cloned()
+        };
+        if let Some(store) = store {
+            let mut sheets = store.write().await;
+            if let Some(sheet) = sheets.get_mut(&user_id.to_string()) {
+                success = true;
+                match stat {
+                        "str" => { sheet.str_val = value; stat_name = "근력 (STR)"; }
+                        "con" => { sheet.con_val = value; stat_name = "건강 (CON)"; }
+                        "siz" => { sheet.siz_val = value; stat_name = "크기 (SIZ)"; }
+                        "dex" => { sheet.dex_val = value; stat_name = "민첩 (DEX)"; }
+                        "app" => { sheet.app_val = value; stat_name = "외모 (APP)"; }
+                        "int" => { sheet.int_val = value; stat_name = "지능 (INT)"; }
+                        "pow" => { sheet.pow_val = value; stat_name = "정신 (POW)"; }
+                        "edu" => { sheet.edu_val = value; stat_name = "교육 (EDU)"; }
+                        "hp" => { sheet.hp = value; stat_name = "체력 (HP)"; }
+                        "mp" => { sheet.mp = value; stat_name = "마력 (MP)"; }
+                        "luck" => { sheet.luck = value; stat_name = "운 (Luck)"; }
+                        _ => { success = false; }
+                    }
+                save_sheets(&sheets).await;
+            }
+        }
+
+        if success {
+            let embed = CreateEmbed::new()
+                .title("특성치 수정 완료")
+                .description(format!("{} 수치가 **{}**(으)로 변경되었습니다. `/show_sheet`로 확인할 수 있습니다.", stat_name, value));
+            interaction.send_embed(ctx, embed).await?;
+            Ok(CommandStatus::Ok)
+        } else {
+            Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()))
+        }
     }
 }

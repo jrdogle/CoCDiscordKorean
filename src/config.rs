@@ -59,12 +59,7 @@ impl BotConfig {
 
     /// Loads `BOT_CONFIG` from `./config.json`.
     fn load_from_file() -> Result<BotConfig> {
-        let executable_path = env::current_exe()?;
-        let executable_dir = executable_path.parent().ok_or(BotConfigError::new(
-            "Cannot retrieve the parent of this executable.",
-        ))?;
-
-        let config_file = executable_dir.join("config.json");
+        let config_file = std::path::Path::new("config.json").to_path_buf();
         if config_file.exists() {
             let config_file = File::open(config_file)?;
             let reader = BufReader::new(config_file);

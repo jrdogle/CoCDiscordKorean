@@ -5,7 +5,11 @@ use anyhow::Result;
 use log::info;
 use serenity::prelude::GatewayIntents;
 use serenity::Client;
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
+use crate::commands::create_sheet::{load_sheets, SheetStore};
 use crate::config::BotConfig;
 use crate::handler::BotHandler;
 use crate::logging::Logger;
@@ -20,6 +24,13 @@ async fn start_bot() -> Result<()> {
     let mut client = Client::builder(&config.discord_token, intents)
         .event_handler(BotHandler)
         .await?;
+
+    // Initialize the in-memory sheet store.
+    {
+        let mut data = client.data.write().await;
+        let sheets = load_sheets();
+        data.insert::<SheetStore>(Arc::new(RwLock::new(sheets)));
+    }
 
     // Launch the client.
     client.start().await?;

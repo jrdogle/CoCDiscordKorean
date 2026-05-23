@@ -9,10 +9,10 @@ use serenity::model::colour::Colour;
 use serenity::prelude::Context;
 
 use crate::commands::choose::ChooseCommand;
-use crate::commands::create_sheet::CSCommand;
+use crate::commands::create_sheet::{CSCommand, EditNameCommand, EditStatCommand, ShowSheetCommand};
 use crate::commands::opposed::Op7Command;
 use crate::commands::roll::RollCommand;
-use crate::commands::skill::{Sk7Command, SkBRPCommand, SkDGCommand};
+use crate::commands::skill::{SkillCommand, UseLuckCommand};
 use crate::logging::BotEventCounter;
 
 /// Represents a handled result of the command.
@@ -44,11 +44,13 @@ static REGISTERED_COMMANDS: Lazy<Vec<Box<dyn BotCommand + Sync + Send>>> = Lazy:
     vec![
         Box::new(ChooseCommand),
         Box::new(CSCommand),
+        Box::new(ShowSheetCommand),
+        Box::new(EditNameCommand),
+        Box::new(EditStatCommand),
         Box::new(RollCommand),
         Box::new(Op7Command),
-        Box::new(Sk7Command),
-        Box::new(SkDGCommand),
-        Box::new(SkBRPCommand),
+        Box::new(SkillCommand),
+        Box::new(UseLuckCommand),
     ]
 });
 
