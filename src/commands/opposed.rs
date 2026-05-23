@@ -61,16 +61,19 @@ impl ToString for RollResult {
     }
 }
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for Op7Command {
+    fn name(&self) -> &str {
+        "대항판정"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("크툴루의 부름 7판 룰에 따라 대항 판정을 합니다.")
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
-                    "status1",
+                    "특성치1",
                     "참가자 1의 특성치 (예: 근력 대항일 경우 근력 값)",
                 )
                 .required(true),
@@ -78,7 +81,7 @@ impl BotCommand for Op7Command {
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
-                    "status2",
+                    "특성치2",
                     "참가자 2의 특성치 (예: 민첩 대항일 경우 민첩 값)",
                 )
                 .required(true),
@@ -86,35 +89,35 @@ impl BotCommand for Op7Command {
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
-                    "bonus1",
+                    "보너스1",
                     "참가자 1의 보너스/패널티 주사위 (예: +1은 보너스, -1은 패널티)",
                 )
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
-                    "bonus2",
+                    "보너스2",
                     "참가자 2의 보너스/패널티 주사위 (예: +1은 보너스, -1은 패널티)",
                 )
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
-                    "name1",
+                    "이름1",
                     "참가자 1의 이름",
                 )
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
-                    "name2",
+                    "이름2",
                     "참가자 2의 이름",
                 )
             )
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
-                    "comment",
+                    "설명",
                     "판정 설명",
                 )
             )
@@ -125,21 +128,21 @@ impl BotCommand for Op7Command {
         ctx: &Context,
         interaction: &CommandInteraction,
     ) -> Result<CommandStatus> {
-        let status1 = interaction.get_int_option("status1".into()).unwrap();
-        let status2 = interaction.get_int_option("status2".into()).unwrap();
+        let status1 = interaction.get_int_option("특성치1".into()).unwrap();
+        let status2 = interaction.get_int_option("특성치2".into()).unwrap();
 
-        let bonus1 = interaction.get_int_option("bonus1".into()).unwrap_or(0);
-        let bonus2 = interaction.get_int_option("bonus2".into()).unwrap_or(0);
+        let bonus1 = interaction.get_int_option("보너스1".into()).unwrap_or(0);
+        let bonus2 = interaction.get_int_option("보너스2".into()).unwrap_or(0);
 
         let name1 = interaction
-            .get_string_option("name1".into())
+            .get_string_option("이름1".into())
             .unwrap_or("참가자 1");
         let name2 = interaction
-            .get_string_option("name2".into())
+            .get_string_option("이름2".into())
             .unwrap_or("참가자 2");
 
         let comment = interaction
-            .get_string_option("comment".into())
+            .get_string_option("설명".into())
             .unwrap_or("대항 판정");
 
         fn roll_dice(status: i32, bonus: i32) -> (String, RollResult) {

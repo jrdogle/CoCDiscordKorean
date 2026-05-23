@@ -29,6 +29,7 @@ pub struct CharacterSheet {
     pub mp: i32,
     pub mp_max: i32,
     pub luck: i32,
+    pub san: i32,
 }
 
 pub struct SheetStore;
@@ -54,22 +55,25 @@ pub async fn save_sheets(sheets: &HashMap<String, CharacterSheet>) {
 /// A command that creates a character sheet.
 pub struct CSCommand;
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for CSCommand {
+    fn name(&self) -> &str {
+        "시트생성"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("탐사자 시트를 생성합니다.")
-            .add_option(CreateCommandOption::new(CommandOptionType::String, "name", "탐사자 이름").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "str", "근력 (STR)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "con", "건강 (CON)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "siz", "크기 (SIZ)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "dex", "민첩 (DEX)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "app", "외모 (APP)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "int", "지능 (INT)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "pow", "정신 (POW)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "edu", "교육 (EDU)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "luck", "운 (Luck)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::String, "이름", "탐사자 이름").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "근력", "근력 (STR)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "건강", "건강 (CON)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "크기", "크기 (SIZ)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "민첩", "민첩 (DEX)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "외모", "외모 (APP)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "지능", "지능 (INT)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "정신", "정신 (POW)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "교육", "교육 (EDU)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "운", "운 (Luck)").required(true))
     }
 
     async fn execute(
@@ -79,22 +83,23 @@ impl BotCommand for CSCommand {
     ) -> Result<CommandStatus> {
         let user_id = interaction.user.id;
 
-        let name = interaction.get_string_option("name".into()).unwrap().to_string();
-        let str_val = interaction.get_int_option("str".into()).unwrap();
-        let con_val = interaction.get_int_option("con".into()).unwrap();
-        let siz_val = interaction.get_int_option("siz".into()).unwrap();
-        let dex_val = interaction.get_int_option("dex".into()).unwrap();
-        let app_val = interaction.get_int_option("app".into()).unwrap();
-        let int_val = interaction.get_int_option("int".into()).unwrap();
-        let pow_val = interaction.get_int_option("pow".into()).unwrap();
-        let edu_val = interaction.get_int_option("edu".into()).unwrap();
-        let luck = interaction.get_int_option("luck".into()).unwrap();
+        let name = interaction.get_string_option("이름".into()).unwrap().to_string();
+        let str_val = interaction.get_int_option("근력".into()).unwrap();
+        let con_val = interaction.get_int_option("건강".into()).unwrap();
+        let siz_val = interaction.get_int_option("크기".into()).unwrap();
+        let dex_val = interaction.get_int_option("민첩".into()).unwrap();
+        let app_val = interaction.get_int_option("외모".into()).unwrap();
+        let int_val = interaction.get_int_option("지능".into()).unwrap();
+        let pow_val = interaction.get_int_option("정신".into()).unwrap();
+        let edu_val = interaction.get_int_option("교육".into()).unwrap();
+        let luck = interaction.get_int_option("운".into()).unwrap();
 
         let hp_max = (con_val + siz_val) / 10;
         let mp_max = pow_val / 5;
+        let san = pow_val;
 
         let sheet = CharacterSheet { 
-            name: name.clone(), str_val, con_val, siz_val, dex_val, app_val, int_val, pow_val, edu_val, hp: hp_max, hp_max, mp: mp_max, mp_max, luck 
+            name: name.clone(), str_val, con_val, siz_val, dex_val, app_val, int_val, pow_val, edu_val, hp: hp_max, hp_max, mp: mp_max, mp_max, luck, san 
         };
 
         let store = {
@@ -119,7 +124,8 @@ impl BotCommand for CSCommand {
             .field(":mortar_board: 교육", edu_val.to_string(), true)
             .field(":heart: 체력", format!("{}/{}", hp_max, hp_max), true)
             .field(":star: 마력", format!("{}/{}", mp_max, mp_max), true)
-            .field(":four_leaf_clover: 운", luck.to_string(), true);
+            .field(":four_leaf_clover: 운", luck.to_string(), true)
+            .field(":brain: 이성", san.to_string(), true);
 
         interaction.send_embed(ctx, embed).await?;
 
@@ -130,9 +136,12 @@ impl BotCommand for CSCommand {
 /// A command that shows the saved character sheet.
 pub struct ShowSheetCommand;
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for ShowSheetCommand {
+    fn name(&self) -> &str {
+        "시트보기"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name()).description("내 탐사자 시트 현황을 확인합니다.")
     }
@@ -167,7 +176,8 @@ impl BotCommand for ShowSheetCommand {
                 .field(":mortar_board: 교육", s.edu_val.to_string(), true)
                 .field(":heart: 체력", format!("{}/{}", s.hp, s.hp_max), true)
                 .field(":star: 마력", format!("{}/{}", s.mp, s.mp_max), true)
-                .field(":four_leaf_clover: 운", s.luck.to_string(), true);
+                .field(":four_leaf_clover: 운", s.luck.to_string(), true)
+                .field(":brain: 이성", s.san.to_string(), true);
 
             interaction.send_embed(ctx, embed).await?;
             Ok(CommandStatus::Ok)
@@ -180,17 +190,20 @@ impl BotCommand for ShowSheetCommand {
 /// A command that edits the name in the character sheet.
 pub struct EditNameCommand;
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for EditNameCommand {
+    fn name(&self) -> &str {
+        "이름수정"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("내 탐사자 시트의 이름을 수정합니다.")
-            .add_option(CreateCommandOption::new(CommandOptionType::String, "name", "새로운 탐사자 이름").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::String, "이름", "새로운 탐사자 이름").required(true))
     }
 
     async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
-        let new_name = interaction.get_string_option("name".into()).unwrap().to_string();
+        let new_name = interaction.get_string_option("이름".into()).unwrap().to_string();
         let user_id = interaction.user.id;
 
         let mut success = false;
@@ -226,14 +239,17 @@ impl BotCommand for EditNameCommand {
 /// A command that edits a specific status in the character sheet.
 pub struct EditStatCommand;
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for EditStatCommand {
+    fn name(&self) -> &str {
+        "특성치수정"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("내 탐사자 시트의 특정 특성치를 수정합니다.")
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "stat", "수정할 특성치")
+                CreateCommandOption::new(CommandOptionType::String, "특성치", "수정할 특성치")
                     .add_string_choice("근력 (STR)", "str")
                     .add_string_choice("건강 (CON)", "con")
                     .add_string_choice("크기 (SIZ)", "siz")
@@ -245,18 +261,20 @@ impl BotCommand for EditStatCommand {
                     .add_string_choice("체력 (HP)", "hp")
                     .add_string_choice("마력 (MP)", "mp")
                     .add_string_choice("운 (Luck)", "luck")
+                    .add_string_choice("이성 (SAN)", "san")
                     .required(true),
             )
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "value", "새로운 수치").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "수치", "새로운 수치").required(true))
     }
 
     async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
-        let stat = interaction.get_string_option("stat".into()).unwrap();
-        let value = interaction.get_int_option("value".into()).unwrap();
+        let stat = interaction.get_string_option("특성치".into()).unwrap();
+        let value = interaction.get_int_option("수치".into()).unwrap();
         let user_id = interaction.user.id;
 
         let mut success = false;
         let mut stat_name = "";
+        let mut madness_warning = false;
 
         let store = {
             let data = ctx.data.read().await;
@@ -278,6 +296,13 @@ impl BotCommand for EditStatCommand {
                         "hp" => { sheet.hp = value; stat_name = "체력 (HP)"; }
                         "mp" => { sheet.mp = value; stat_name = "마력 (MP)"; }
                         "luck" => { sheet.luck = value; stat_name = "운 (Luck)"; }
+                        "san" => { 
+                            sheet.san = value; 
+                            stat_name = "이성 (SAN)"; 
+                            if sheet.san < (sheet.pow_val * 80 / 100) {
+                                madness_warning = true;
+                            }
+                        }
                         _ => { success = false; }
                     }
                 save_sheets(&sheets).await;
@@ -285,9 +310,13 @@ impl BotCommand for EditStatCommand {
         }
 
         if success {
+            let mut desc = format!("{} 수치가 **{}**(으)로 변경되었습니다. `/show_sheet`로 확인할 수 있습니다.", stat_name, value);
+            if madness_warning {
+                desc.push_str("\n\n:warning: **경고: 이성이 정신 스탯의 80% 미만으로 떨어져 광기에 걸렸습니다!**");
+            }
             let embed = CreateEmbed::new()
                 .title("특성치 수정 완료")
-                .description(format!("{} 수치가 **{}**(으)로 변경되었습니다. `/show_sheet`로 확인할 수 있습니다.", stat_name, value));
+                .description(desc);
             interaction.send_embed(ctx, embed).await?;
             Ok(CommandStatus::Ok)
         } else {

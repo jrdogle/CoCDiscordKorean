@@ -12,7 +12,7 @@ use crate::commands::choose::ChooseCommand;
 use crate::commands::create_sheet::{CSCommand, EditNameCommand, EditStatCommand, ShowSheetCommand};
 use crate::commands::opposed::Op7Command;
 use crate::commands::roll::RollCommand;
-use crate::commands::skill::{SkillCommand, UseLuckCommand};
+use crate::commands::skill::{SanRollCommand, SkillCommand, UseLuckCommand};
 use crate::logging::BotEventCounter;
 
 /// Represents a handled result of the command.
@@ -51,6 +51,7 @@ static REGISTERED_COMMANDS: Lazy<Vec<Box<dyn BotCommand + Sync + Send>>> = Lazy:
         Box::new(Op7Command),
         Box::new(SkillCommand),
         Box::new(UseLuckCommand),
+        Box::new(SanRollCommand),
     ]
 });
 

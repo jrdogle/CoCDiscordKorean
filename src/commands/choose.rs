@@ -9,16 +9,19 @@ use crate::commands::{BotCommand, CommandStatus, InteractionUtil, SendEmbed};
 /// A command that make a random choice.
 pub struct ChooseCommand;
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for ChooseCommand {
+    fn name(&self) -> &str {
+        "선택"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("주어진 항목 중 하나를 무작위로 선택합니다.")
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
-                    "choices",
+                    "선택지",
                     "쉼표로 구분된 선택지 (예: 사과,바나나,포도)",
                 )
                 .required(true),
@@ -31,7 +34,7 @@ impl BotCommand for ChooseCommand {
         interaction: &CommandInteraction,
     ) -> Result<CommandStatus> {
         let choices: Vec<&str> = interaction
-            .get_string_option("choices".into())
+            .get_string_option("선택지".into())
             .unwrap()
             .split(",")
             .collect();

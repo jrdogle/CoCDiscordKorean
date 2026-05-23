@@ -6,6 +6,7 @@ use serenity::prelude::Context;
 
 use crate::commands::create_sheet::{save_sheets, SheetStore};
 use crate::commands::{BotCommand, CommandStatus, InteractionUtil, SendEmbed};
+use crate::commands::roll::RollCommand;
 
 /// A helper for skill rolls.
 struct SkillHelper;
@@ -49,18 +50,21 @@ impl SkillHelper {
     }
 }
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for SkillCommand {
+    fn name(&self) -> &str {
+        "판정"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("크툴루의 부름 7판 룰에 따라 기능 판정을 합니다.")
             .add_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "chance", "기능 수치")
+                CreateCommandOption::new(CommandOptionType::Integer, "수치", "기능 수치")
                     .required(false),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "stat", "시트에 저장된 특성치로 판정")
+                CreateCommandOption::new(CommandOptionType::String, "특성치", "시트에 저장된 특성치로 판정")
                     .add_string_choice("근력 (STR)", "str")
                     .add_string_choice("건강 (CON)", "con")
                     .add_string_choice("크기 (SIZ)", "siz")
@@ -72,10 +76,11 @@ impl BotCommand for SkillCommand {
                     .add_string_choice("체력 (HP)", "hp")
                     .add_string_choice("마력 (MP)", "mp")
                     .add_string_choice("운 (Luck)", "luck")
+                    .add_string_choice("이성 (SAN)", "san")
                     .required(false),
             )
             .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "comment", "판정 설명"),
+                CreateCommandOption::new(CommandOptionType::String, "기능이름", "판정 설명"),
             )
     }
 
@@ -88,11 +93,11 @@ impl BotCommand for SkillCommand {
         let mut stat_name_display = String::new();
         let mut character_name = interaction.get_nickname();
 
-        if let Some(val) = interaction.get_int_option("chance".to_string()) {
+        if let Some(val) = interaction.get_int_option("수치".to_string()) {
             chance_val = Some(val);
         }
 
-        let stat_opt = interaction.get_string_option("stat".to_string());
+        let stat_opt = interaction.get_string_option("특성치".to_string());
 
         if stat_opt.is_some() || chance_val.is_none() {
             let user_id = interaction.user.id;
@@ -117,6 +122,7 @@ impl BotCommand for SkillCommand {
                             "hp" => { chance_val = Some(sheet.hp); stat_name_display = "체력 (HP)".to_string(); }
                             "mp" => { chance_val = Some(sheet.mp); stat_name_display = "마력 (MP)".to_string(); }
                             "luck" => { chance_val = Some(sheet.luck); stat_name_display = "운 (Luck)".to_string(); }
+                            "san" => { chance_val = Some(sheet.san); stat_name_display = "이성 (SAN)".to_string(); }
                             _ => {}
                         }
                     }
@@ -128,11 +134,11 @@ impl BotCommand for SkillCommand {
 
         let chance = match chance_val {
             Some(v) => v,
-            None => return Ok(CommandStatus::Err("기능 수치(`chance`)를 직접 입력하거나 판정할 특성치(`stat`)를 선택해야 합니다.".to_string())),
+            None => return Ok(CommandStatus::Err("기능 수치(`수치`)를 직접 입력하거나 판정할 특성치(`특성치`)를 선택해야 합니다.".to_string())),
         };
 
         let comment = interaction
-            .get_string_option("comment".to_string())
+            .get_string_option("기능이름".to_string())
             .unwrap_or(if stat_name_display.is_empty() { "기능" } else { &stat_name_display });
 
         SkillHelper::execute_7th(ctx, interaction, chance, comment, &character_name).await
@@ -142,19 +148,22 @@ impl BotCommand for SkillCommand {
 /// A command that consumes luck to change a failed roll into a success.
 pub struct UseLuckCommand;
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for UseLuckCommand {
+    fn name(&self) -> &str {
+        "운소모"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("운을 소모하여 실패한 판정을 보통 성공으로 수정합니다.")
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "roll", "나온 주사위 값 (예: 52)").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "target", "목표했던 성공 수치 (예: 50)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "주사위값", "나온 주사위 값 (예: 52)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "목표값", "목표했던 성공 수치 (예: 50)").required(true))
     }
 
     async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
-        let roll = interaction.get_int_option("roll".into()).unwrap();
-        let target = interaction.get_int_option("target".into()).unwrap();
+        let roll = interaction.get_int_option("주사위값".into()).unwrap();
+        let target = interaction.get_int_option("목표값".into()).unwrap();
         let user_id = interaction.user.id;
 
         let cost = roll - target;
@@ -201,5 +210,101 @@ impl BotCommand for UseLuckCommand {
         } else {
             Ok(CommandStatus::Err("시스템 오류로 운을 소모하지 못했습니다.".to_string()))
         }
+    }
+}
+
+/// A command that does a sanity roll and deducts SAN.
+pub struct SanRollCommand;
+
+#[serenity::async_trait]
+impl BotCommand for SanRollCommand {
+    fn name(&self) -> &str {
+        "이성판정"
+    }
+
+    fn create(&self) -> CreateCommand {
+        CreateCommand::new(self.name())
+            .description("이성(SAN) 판정을 하고 결과에 따라 이성을 감소시킵니다.")
+            .add_option(CreateCommandOption::new(CommandOptionType::String, "성공시감소량", "성공 시 감소량 (예: 0, 1, 1d3)").required(true))
+            .add_option(CreateCommandOption::new(CommandOptionType::String, "실패시감소량", "실패 시 감소량 (예: 1, 1d6, 1d10)").required(true))
+    }
+
+    async fn execute(&self, ctx: &Context, interaction: &CommandInteraction) -> Result<CommandStatus> {
+        let success_loss = interaction.get_string_option("성공시감소량".into()).unwrap();
+        let failure_loss = interaction.get_string_option("실패시감소량".into()).unwrap();
+        let user_id = interaction.user.id;
+
+        let mut character_name = interaction.get_nickname();
+        let mut current_san = 0;
+        let mut has_sheet = false;
+
+        let store = {
+            let data = ctx.data.read().await;
+            data.get::<SheetStore>().cloned()
+        };
+
+        if let Some(store) = &store {
+            let sheets = store.read().await;
+            if let Some(sheet) = sheets.get(&user_id.to_string()) {
+                if !sheet.name.is_empty() {
+                    character_name = sheet.name.clone();
+                }
+                current_san = sheet.san;
+                has_sheet = true;
+            }
+        }
+
+        if !has_sheet {
+            return Ok(CommandStatus::Err("저장된 캐릭터 시트가 없습니다. `/cs` 명령어로 먼저 시트를 생성해 주세요.".to_string()));
+        }
+
+        let roll = {
+            let mut rng = rand::thread_rng();
+            rng.gen_range(1..=100)
+        };
+
+        let is_success = roll <= current_san;
+        let expr = if is_success { success_loss } else { failure_loss };
+
+        let (loss_amount, dice_desc) = match RollCommand::evaluate_dice_expr(expr) {
+            Ok(res) => res,
+            Err(msg) => return Ok(CommandStatus::Err(format!("주사위 식 오류: {}", msg))),
+        };
+
+        let loss_amount = i32::max(0, loss_amount);
+        let mut new_san = current_san;
+        let mut madness_warning = false;
+
+        if let Some(store) = store {
+            let mut sheets = store.write().await;
+            if let Some(sheet) = sheets.get_mut(&user_id.to_string()) {
+                sheet.san -= loss_amount;
+                new_san = sheet.san;
+                if sheet.san < (sheet.pow_val * 80 / 100) {
+                    madness_warning = true;
+                }
+                save_sheets(&sheets).await;
+            }
+        }
+
+        let result_text = if is_success {
+            format!(":o: **성공** ({} <= {})", roll, current_san)
+        } else {
+            format!(":x: **실패** ({} > {})", roll, current_san)
+        };
+
+        let mut desc = format!("**감소치 굴림:** {} ➔ **{}** 감소\n**남은 이성:** {} ➔ **{}**", dice_desc, loss_amount, current_san, new_san);
+
+        if madness_warning {
+            desc.push_str("\n\n:warning: **경고: 이성이 정신 스탯의 80% 미만으로 떨어져 광기에 걸렸습니다!**");
+        }
+
+        let embed = CreateEmbed::new()
+            .title(format!("{}의 이성(SAN) 판정", character_name))
+            .field("판정 결과", result_text, false)
+            .field("이성 감소", desc, false);
+
+        interaction.send_embed(ctx, embed).await?;
+        Ok(CommandStatus::Ok)
     }
 }

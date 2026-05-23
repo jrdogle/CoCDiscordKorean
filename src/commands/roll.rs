@@ -15,16 +15,19 @@ const MAX_DICE_NUM: usize = 30;
 /// A command to roll dices.
 pub struct RollCommand;
 
-#[naming]
 #[serenity::async_trait]
 impl BotCommand for RollCommand {
+    fn name(&self) -> &str {
+        "다이스"
+    }
+
     fn create(&self) -> CreateCommand {
         CreateCommand::new(self.name())
             .description("지정된 주사위를 굴립니다.")
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
-                    "dice",
+                    "주사위",
                     "굴릴 주사위 식 (예: 3d4 + 1)",
                 )
                 .required(true),
@@ -32,7 +35,7 @@ impl BotCommand for RollCommand {
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
-                    "comment",
+                    "설명",
                     "주사위 굴림에 대한 설명",
                 )
             )
@@ -43,10 +46,10 @@ impl BotCommand for RollCommand {
         ctx: &Context,
         interaction: &CommandInteraction,
     ) -> Result<CommandStatus> {
-        let dice = interaction.get_string_option("dice".into()).unwrap();
+        let dice = interaction.get_string_option("주사위".into()).unwrap();
 
         let comment = interaction
-            .get_string_option("comment".into())
+            .get_string_option("설명".into())
             .map(|comment| format!(": {}", comment))
             .unwrap_or_default();
 
